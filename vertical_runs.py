@@ -14,6 +14,8 @@ def vertical_runs(img):
     width = img.shape[1]
     height = img.shape[0]
 
+    
+
 
 def checkIfImageIsBinary(img, valueforWhite=255):
     # Set flag
@@ -37,6 +39,14 @@ def checkIfImageIsBinary(img, valueforWhite=255):
     return flag
 
 
+def main():
+    print("Running test...")
+    test_img = cv.imread("test_staff_img_1.png", cv.IMREAD_GRAYSCALE)
+    _, test_img = cv.threshold(test_img, 150, 255, cv.THRESH_BINARY)
+    vertical_runs(test_img)
+
+
+    print("Test completed!")
 
 if __name__ == "__main__":
     main()
