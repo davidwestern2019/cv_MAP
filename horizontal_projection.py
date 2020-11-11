@@ -52,7 +52,7 @@ def horizontal_projection_calc(img, start_row, end_row, binSize=1):
 def findTopPeaks(histogram, numPeaks=5):
     #print(histogram)
     # find the five largest peaks. This assumes user includes only one staff per horizontal slice
-    peakLocations = np.zeros((5, 1))
+    peakLocations = np.zeros((numPeaks, 1))
 
     assert (len(histogram) >= numPeaks)
 
@@ -97,7 +97,7 @@ def main():
     # test_img[30, :] = np.zeros((1, 256))
     # horizontal_projection_calc(test_img, start_row=5, end_row=50)
 
-    test_img = cv.imread("test_staff_img_1.png", cv.IMREAD_GRAYSCALE)
+    test_img = cv.imread("test_staff_img_5.png", cv.IMREAD_GRAYSCALE)
     _, test_img = cv.threshold(test_img, 150, 255, cv.THRESH_BINARY)
     # cv.imshow("Test image", test_img)
     # cv.waitKey(0)
