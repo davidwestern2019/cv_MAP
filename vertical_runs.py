@@ -120,7 +120,7 @@ def main():
 
     cv.imshow("Test Image", test_img)
     cv.waitKey(0)
-    plt.plot(wh)
+    plt.plot(bh)
     plt.show()
 
     # check if histogram got all the pixels
@@ -128,7 +128,7 @@ def main():
     width = test_img.shape[1]
     height = test_img.shape[0]
     print("Should see ", width*height, " pixels...")
-    print(wh)
+    print(bh)
 
     print("Test completed!")
 
