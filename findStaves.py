@@ -19,7 +19,7 @@ def find_line_thickness(histogram):
     # This function is to be used within vertical_runs.py
     # There will be two peaks: each represent line width (at least to my understanding)
     # This is due to the varying thickness of the lines after binarization
-    # Choose the large pixel thickness of the two.
+    # Choose the larger pixel thickness of the two.
     thickness = np.argmax(histogram)
     # Check the next bin
     next_thickness = thickness+1
@@ -32,7 +32,7 @@ def find_line_spacing(histogram):
     # This function is to be used within vertical_runs.py
     # There will be two peaks: each represent spacing width (at least to my understanding)
     # This is due to the varying spacing after binarization of the image
-    # Choose the large pixel size of the two.
+    # Choose the larger pixel size of the two.
     thickness = np.argmax(histogram)
     # Check the next bin
     next_thickness = thickness + 1

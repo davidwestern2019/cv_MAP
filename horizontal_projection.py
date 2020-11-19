@@ -14,6 +14,7 @@ def horizontal_projection_calc(img, start_row, end_row, binSize=1):
     #   binSize         = size of bins for histogram.
     # OUTPUTS
     #   peakLocations   = the row coordinates where the stafflines are. Returns 5 locations.
+    #   peakHeights     = the height of the peaks (length of staff lines)
 
     # Image input must be a binary image!!!
     isBinaryImage = checkIfImageIsBinary(img)
