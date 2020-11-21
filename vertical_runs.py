@@ -2,7 +2,7 @@ import cv2 as cv
 import numpy as np
 import matplotlib.pyplot as plt
 
-def vertical_runs(img):
+def vertical_runs_calc(img):
     # This function performs vertical runs on the entire piece of sheet music (or whatever image is passed to it)
     # This function helps find useful properties like staffline thickness, staffline spacing, spacing between staves,
     # and the height of a staff.
@@ -116,7 +116,7 @@ def main():
     # cv.imshow("Test image", test_img)
     # cv.waitKey(0)
 
-    bh, wh = vertical_runs(test_img)
+    bh, wh = vertical_runs_calc(test_img)
 
     cv.imshow("Test Image", test_img)
     cv.waitKey(0)

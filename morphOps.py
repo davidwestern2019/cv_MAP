@@ -24,8 +24,8 @@ def performStaffOps(img, dis):
     # find the length of the stafflines with horizontal projections
     _, staffline_lengths = horizontal_projection.horizontal_projection_calc(img_dil, start_row=0, end_row=img_height)
     block_width_erod = int(max(staffline_lengths)*0.8)
-    print("Staffline lengths: ", staffline_lengths)
-    print('Image width is: ', img_width)
+    #print("Staffline lengths: ", staffline_lengths)
+    #print('Image width is: ', img_width)
     block_height_erod = dis
     kernel = np.ones((block_height_erod, block_width_erod), np.uint8)
     img_erode = cv.erode(img_dil, kernel)
@@ -62,7 +62,7 @@ def main():
 
     test_img = cv.imread("example_music_3.jpg", cv.IMREAD_GRAYSCALE)
     _, test_img = cv.threshold(test_img, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)
-    black_hist, white_hist = vertical_runs.vertical_runs(test_img)
+    black_hist, white_hist = vertical_runs.vertical_runs_calc(test_img)
     dis = findStaves.find_line_spacing(white_hist)
 
     filtered_img = performStaffOps(test_img, dis)
