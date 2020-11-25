@@ -4,6 +4,7 @@ import vertical_runs
 import morphOps
 import horizontal_projection
 import utilities_cv
+import statistics
 
 def findStaves(image):
     # This program takes a sheet of music and finds the locations of the stafflines, their thickness, spacing, and ...
@@ -19,33 +20,26 @@ def findStaves(image):
     # -- perform morphological ops
     # -- extract staff size and location for each staff. Also get number of staves
     morphed_image = morphOps.performStaffOps(image, staffline_spacing)
-    cv.imshow("Morphed Image", morphed_image)
-    cv.waitKey(0)
+    # cv.imshow("Morphed Image", morphed_image)
+    # cv.waitKey(0)
     staves = find_staff_locations(morphed_image)
     print("Found staves. Adding line thickness and spacing...")
 
     # add parameters to each staff object
-    mean_staffline_length = 0
-    counter_for_staffline_length_mean = 0
+    median_staffline_length_list = []
     for staff in staves:
-        print("Doing staff ", staff.staff_number)
+        # print("Doing staff ", staff.staff_number)
         staff.dis = staffline_spacing
         # print("Thickness is: ", staffline_thickness)
-        print("Start: ", staff.staff_start, ", End: ", staff.staff_end)
+        # print("Start: ", staff.staff_start, ", End: ", staff.staff_end)
         line_start_locations, line_lengths = horizontal_projection.horizontal_projection_calc(image,
                                             staff.staff_start, staff.staff_end,
                                             binSize=staffline_thickness)
 
         staff.line_length = int(max(line_lengths)/staffline_thickness)   # use max value of the various line lengths
 
-        # use a mean staffline length to counteract scenario where horizontal_proj bin doesn't start on line
-        # if staff.line_length < 0.55 * image.shape[0]:
-        #     if mean_staffline_length == 0:
-        #         staff.line_length =
-        # mean_staffline_length += staff.line_length
-        # mean_staffline_length *= counter_for_staffline_length_mean
-        # counter_for_staffline_length_mean += 1
-        # mean_staffline_length /= counter_for_staffline_length_mean
+        # use a median staffline length to counteract scenario where horizontal_proj bin doesn't start on line
+        median_staffline_length_list.append(staff.line_length)
 
         start_line_locations = np.sort(line_start_locations, axis=None)     # sort the array of line starting locations
         staff.line_locations = []
@@ -53,16 +47,22 @@ def findStaves(image):
             # create list of tuples (start, end) for each staffline
             staff.line_locations.append((line_start, line_start+staffline_thickness))
 
-    # just to check to make sure that the objects are getting the right methods
+    # perform corrections to avoid falsely reported short line
+    median_staffline_length = statistics.median(median_staffline_length_list)
     for staff in staves:
-        print("Staff ", staff.staff_number, " has the following:")
-        print("\t Line length: ", staff.line_length)
-        print("\t Line Locations", staff.line_locations)
+        if staff.line_length < 0.8 * median_staffline_length:
+            staff.line_length = median_staffline_length
 
+    # just to check to make sure that the objects are getting the right methods
+    # for staff in staves:
+    #     print("Staff ", staff.staff_number, " has the following:")
+    #     print("\t Line length: ", staff.line_length)
+    #     print("\t Line Locations", staff.line_locations)
 
 
     # return list of objects. The objects represent a staff and contain staff info. List is sorted from top staff to
     # bottom
+    return staves
 
 
 def find_line_thickness(histogram):
@@ -186,7 +186,7 @@ def find_staff_size(black_histogram):
 
 def main():
     # Use this to use a piece of sample music
-    test_img = cv.imread("example_music_4.jpg", cv.IMREAD_GRAYSCALE)
+    test_img = cv.imread("example_music_3.jpg", cv.IMREAD_GRAYSCALE)
     _, test_img = cv.threshold(test_img, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)
 
     # ---------  Use this to create custom image -------------
@@ -194,8 +194,8 @@ def main():
     # test_img = np.ones(shape_test_image)*255
     # test_img[10:100, :] = np.zeros((1, 256))
     # test_img[200:220, :] = np.zeros((1, 256))
-    cv.imshow("Test image", test_img)
-    cv.waitKey(0)
+    # cv.imshow("Test image", test_img)
+    # cv.waitKey(0)
 
     findStaves(test_img)
 
