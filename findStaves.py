@@ -25,16 +25,28 @@ def findStaves(image):
     print("Found staves. Adding line thickness and spacing...")
 
     # add parameters to each staff object
+    mean_staffline_length = 0
+    counter_for_staffline_length_mean = 0
     for staff in staves:
-        # print("Doing staff ", staff.staff_number)
+        print("Doing staff ", staff.staff_number)
         staff.dis = staffline_spacing
         # print("Thickness is: ", staffline_thickness)
-        # print("Start: ", staff.staff_start, ", End: ", staff.staff_end)
+        print("Start: ", staff.staff_start, ", End: ", staff.staff_end)
         line_start_locations, line_lengths = horizontal_projection.horizontal_projection_calc(image,
                                             staff.staff_start, staff.staff_end,
                                             binSize=staffline_thickness)
 
         staff.line_length = int(max(line_lengths)/staffline_thickness)   # use max value of the various line lengths
+
+        # use a mean staffline length to counteract scenario where horizontal_proj bin doesn't start on line
+        # if staff.line_length < 0.55 * image.shape[0]:
+        #     if mean_staffline_length == 0:
+        #         staff.line_length =
+        # mean_staffline_length += staff.line_length
+        # mean_staffline_length *= counter_for_staffline_length_mean
+        # counter_for_staffline_length_mean += 1
+        # mean_staffline_length /= counter_for_staffline_length_mean
+
         start_line_locations = np.sort(line_start_locations, axis=None)     # sort the array of line starting locations
         staff.line_locations = []
         for line_start in start_line_locations:
@@ -128,6 +140,40 @@ def find_staff_locations(img, print_Flag=False):
                 is_staff = False
         # end of if
     # end of for loop going over rows
+
+    # Filter out borders
+    # -- need to make sure that only the staves are returned.
+    # -- issues have come up with borders being counted as staves
+    # -- I suspect that big titles or illustrations might pose an issue as well
+    list_staff_heights = []
+    max_height = 0
+    fix_numbering = False   # if false staves are removed, need to fix staff numbering
+    for i in range(0, len(list_of_staves)):
+        # if there isn't a staff_end, that means the black region is on the bottom, and highly likely not a staff
+        if list_of_staves[i].staff_end is None or list_of_staves[i].staff_start is None:
+            print("Removed a false staff at top/bottom. Removed staff ", list_of_staves[i].staff_number)
+            del list_of_staves[i]   # remove staff from list
+            fix_numbering = True
+            continue    # move on to next "staff" object
+
+        staff_height = list_of_staves[i].staff_end - list_of_staves[i].staff_start  # find height (horizontal distance) of staff
+        list_staff_heights.append(staff_height)
+        if staff_height > max_height:
+            max_height = staff_height   # real staves are much taller than page borders
+
+    # find and delete "staves" whose size is much less than the real staff size
+    for i in range(0, len(list_staff_heights)):
+        if list_staff_heights[i] < 0.8 * max_height:
+            print("Removed a false staff. Too short. Removed staff ", list_of_staves[i].staff_number)
+            del list_of_staves[i]   # remove bogus staff object
+            fix_numbering = True
+    # DONE filtering out borders
+
+    # possibly fix staff numbering
+    if fix_numbering:
+        for i in range(0, len(list_of_staves)):
+            list_of_staves[i].staff_number = i+1
+
     return list_of_staves
 
 
