@@ -14,28 +14,32 @@ def findStaves(image):
     black_histogram, white_histogram = vertical_runs.vertical_runs_calc(image)
     staffline_thickness = find_line_thickness(black_histogram)  # max thickness of staff lines
     staffline_spacing = find_line_spacing(white_histogram)      # avg space between staff lines
-    print(staffline_thickness)
 
     # find the location of staves and the spacing between staves
     # -- perform morphological ops
     # -- extract staff size and location for each staff. Also get number of staves
     morphed_image = morphOps.performStaffOps(image, staffline_spacing)
+    cv.imshow("Morphed Image", morphed_image)
+    cv.waitKey(0)
     staves = find_staff_locations(morphed_image)
     print("Found staves. Adding line thickness and spacing...")
 
     # add parameters to each staff object
-    #staff_buffer = 3 # this is for use in the horizontal_projections. Just being careful to not clip the staff
     for staff in staves:
-        print("Doing staff ", staff.staff_number)
+        # print("Doing staff ", staff.staff_number)
         staff.dis = staffline_spacing
-        print("Thickness is: ", staffline_thickness)
-        print("Start: ", staff.staff_start, ", End: ", staff.staff_end)
+        # print("Thickness is: ", staffline_thickness)
+        # print("Start: ", staff.staff_start, ", End: ", staff.staff_end)
         line_start_locations, line_lengths = horizontal_projection.horizontal_projection_calc(image,
                                             staff.staff_start, staff.staff_end,
                                             binSize=staffline_thickness)
 
-        staff.line_length = max(line_lengths)
-        staff.line_locations = line_start_locations
+        staff.line_length = int(max(line_lengths)/staffline_thickness)   # use max value of the various line lengths
+        start_line_locations = np.sort(line_start_locations, axis=None)     # sort the array of line starting locations
+        staff.line_locations = []
+        for line_start in start_line_locations:
+            # create list of tuples (start, end) for each staffline
+            staff.line_locations.append((line_start, line_start+staffline_thickness))
 
     # just to check to make sure that the objects are getting the right methods
     for staff in staves:
@@ -136,7 +140,7 @@ def find_staff_size(black_histogram):
 
 def main():
     # Use this to use a piece of sample music
-    test_img = cv.imread("example_music_3.jpg", cv.IMREAD_GRAYSCALE)
+    test_img = cv.imread("example_music_4.jpg", cv.IMREAD_GRAYSCALE)
     _, test_img = cv.threshold(test_img, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)
 
     # ---------  Use this to create custom image -------------
@@ -144,9 +148,8 @@ def main():
     # test_img = np.ones(shape_test_image)*255
     # test_img[10:100, :] = np.zeros((1, 256))
     # test_img[200:220, :] = np.zeros((1, 256))
-    # cv.imshow("Test image", test_img)
-    # cv.waitKey(0)
-    print("pic width: ", test_img.shape[1])
+    cv.imshow("Test image", test_img)
+    cv.waitKey(0)
 
     findStaves(test_img)
 

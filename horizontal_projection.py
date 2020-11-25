@@ -28,7 +28,6 @@ def horizontal_projection_calc(img, start_row, end_row, binSize=1):
 
     # Adjust start and end row such that each bin has same amount of rows in it (and none are skipped)
     start_row, end_row = adjustBounds(start_row, end_row, binSize, height)
-    print(start_row, end_row)
 
     # Loop over each row
     count_for_each_row = []
@@ -48,16 +47,18 @@ def horizontal_projection_calc(img, start_row, end_row, binSize=1):
         count_for_each_row.append(count)
 
     # print(count_for_each_row)
-    print("Pixel count is ", pixel_check)
-    print((end_row-start_row)*width)
+    # print("Pixel count is ", pixel_check)
+    # print((end_row-start_row)*width)
     assert (pixel_check == (end_row-start_row)*width), "Error! Not every pixel was counted"
 
     # find locations of peaks and their heights. This is equivalent to finding the staffline locations and the length
     # of the staff lines
     peaks = 5
     peakLocations, peakHeights = findTopPeaks(count_for_each_row, peaks)
+    peakLocations *= binSize
     peakLocations += start_row
     return peakLocations, peakHeights
+
 
 def adjustBounds(start, end, dividend, max_end_value):
     remainder = (end-start) % dividend
@@ -80,7 +81,6 @@ def findTopPeaks(histogram, numPeaks=5):
         #print(i)
         a_peak = np.argmax(histogram)
         peak_height = max(histogram)
-        # print(a_peak)
         peakLocations[i] = a_peak
         peakHeights[i] = peak_height
         histogram[int(a_peak)] = 0
@@ -124,12 +124,12 @@ def main():
 
     test_img = cv.imread("example_music_3.jpg", cv.IMREAD_GRAYSCALE)
     _, test_img = cv.threshold(test_img, 150, 255, cv.THRESH_BINARY)
-    cv.imshow("Test image", test_img)
-    cv.waitKey(0)
+    # cv.imshow("Test image", test_img)
+    # cv.waitKey(0)
     img_width = test_img.shape[1]
     img_height = test_img.shape[0]
-    print(img_width)
-    print(img_height)
+    # print(img_width)
+    # print(img_height)
     staff_locations, staffline_lengths = horizontal_projection_calc(test_img, start_row=578, end_row=619, binSize=2)
     print("Locations are \n", staff_locations)
     print("Staff lengths are: \n", staffline_lengths)
@@ -137,7 +137,7 @@ def main():
     #cv.cvtColor(test_img, test_img_color, cv.COLOR_GRAY2BGR)
     for i in range(0, len(staff_locations)):
         staff_loc = (10, staff_locations[i])
-        cv.drawMarker(test_img,staff_loc,(0,0,255), cv.MARKER_STAR)
+        cv.drawMarker(test_img, staff_loc,(0,0,255), cv.MARKER_STAR)
     cv.imshow("Annotated image", test_img)
     cv.waitKey(0)
 
