@@ -8,7 +8,7 @@ import utilities_cv
 
 def main():
     # Use this to use a piece of sample music
-    test_img = cv.imread("example_music_3.jpg", cv.IMREAD_GRAYSCALE)
+    test_img = cv.imread("example_music_4.jpg", cv.IMREAD_GRAYSCALE)
     _, test_img = cv.threshold(test_img, 200, 255, cv.THRESH_BINARY)
 
     # create window to look at test image and click on pixels for verification purposes
@@ -18,8 +18,11 @@ def main():
     cv.setMouseCallback(pick_window, utilities_cv.get_xy, picked_point)
     cv.imshow(pick_window, test_img)
 
+    # find staves
     staves = findStaves.findStaves(test_img)
     print(" Found Staves")
+
+    # remove staves
     image_no_staff = removeStaffLines.removeLines(test_img, staves)
     print("Removed staves")
 
@@ -28,6 +31,7 @@ def main():
 
 
     cv.waitKey(0)
+
 
 if __name__ == '__main__':
     main()

@@ -3,7 +3,7 @@ import numpy as np
 
 
 
-def horizontal_projection_calc(img, start_row, end_row, binSize=1):
+def horizontal_projection_calc(img, start_row, end_row, binSize=1, peaks=5):
     #
     # You MUST choose a horizontal slice that has only 1 (ONE) staff in it. Any more leads to erroneous results
     # Note: the difference between start_row and end_row must be a factor of binSize. In case its not, this program uses
@@ -53,7 +53,7 @@ def horizontal_projection_calc(img, start_row, end_row, binSize=1):
 
     # find locations of peaks and their heights. This is equivalent to finding the staffline locations and the length
     # of the staff lines
-    peaks = 5
+    # peaks = 5 # was a default value. now its a possible
     peakLocations, peakHeights = findTopPeaks(count_for_each_row, peaks)
     peakLocations *= binSize
     peakLocations += start_row

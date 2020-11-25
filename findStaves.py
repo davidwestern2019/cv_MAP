@@ -27,20 +27,23 @@ def findStaves(image):
 
     # add parameters to each staff object
     median_staffline_length_list = []
+    extra_bins_for_varying_line_thickness = 9
     for staff in staves:
-        # print("Doing staff ", staff.staff_number)
+        print("Doing staff ", staff.staff_number)
         staff.dis = staffline_spacing
         # print("Thickness is: ", staffline_thickness)
         # print("Start: ", staff.staff_start, ", End: ", staff.staff_end)
         line_start_locations, line_lengths = horizontal_projection.horizontal_projection_calc(image,
                                             staff.staff_start, staff.staff_end,
-                                            binSize=staffline_thickness)
+                                            binSize=staffline_thickness,
+                                            peaks=extra_bins_for_varying_line_thickness)
 
         staff.line_length = int(max(line_lengths)/staffline_thickness)   # use max value of the various line lengths
 
         # use a median staffline length to counteract scenario where horizontal_proj bin doesn't start on line
         median_staffline_length_list.append(staff.line_length)
 
+        print(line_start_locations)
         start_line_locations = np.sort(line_start_locations, axis=None)     # sort the array of line starting locations
         staff.line_locations = []
         for line_start in start_line_locations:
