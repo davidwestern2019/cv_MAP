@@ -18,7 +18,7 @@ def performStaffOps(img, dis):
     block_height_dil_1 = dis+1
     kernel = np.ones((block_height_dil_1, block_width_dil_1), np.uint8)
     img_dil = cv.dilate(img_inv, kernel=kernel)
-    cv.imshow("Dilated Image", img_dil)
+    #cv.imshow("Dilated Image", img_dil)
 
     # erode with horizontal block
     # find the length of the stafflines with horizontal projections
@@ -29,14 +29,14 @@ def performStaffOps(img, dis):
     block_height_erod = dis
     kernel = np.ones((block_height_erod, block_width_erod), np.uint8)
     img_erode = cv.erode(img_dil, kernel)
-    cv.imshow("Eroded Image", img_erode)
+    #cv.imshow("Eroded Image", img_erode)
 
     # dilate with skinny horizontal block
     block_width_dil_1 = block_width_erod - block_width_dil_1
     block_height_dil_1 = 1
     kernel = np.ones((block_height_dil_1, block_width_dil_1), np.uint8)
     img_dil_2 = cv.dilate(img_erode, kernel=kernel)
-    cv.imshow("2nd Dilation Image", img_dil_2)
+    #cv.imshow("2nd Dilation Image", img_dil_2)
 
     # invert image to get back to black text
     img = invertBinaryImage(img_dil_2)
@@ -67,8 +67,8 @@ def main():
 
     filtered_img = performStaffOps(test_img, dis)
 
-    cv.imshow("Staves only", filtered_img)
-    cv.imshow("Original Image", test_img)
+    #cv.imshow("Staves only", filtered_img)
+    #cv.imshow("Original Image", test_img)
 
 
 

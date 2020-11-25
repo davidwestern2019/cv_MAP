@@ -2,6 +2,9 @@
 # functions that are commonly used should be put here to avoid redefinition
 # classes that are used across the layers of the project should also be put here to avoid any issues
 
+import cv2 as cv
+import sys
+
 class StaffClass:
     staff_number = None     # this represents whether its the 1st, 2nd, 3rd, etc staff encountered when going down the page
     staff_start = None      # pixel/row where the staff begins
@@ -10,6 +13,10 @@ class StaffClass:
                             # from top line first to bottom line last
     dis = None              # this is the spacing between the staff lines. helps determine font (Roth 1994)
     line_length = None      # length of staff lines. Also is the width of the entire staff
+
+    def __init__(self, num):
+        self.staff_number = num
+
 
 class NoteClass:
     pitch = None            # pitch of note
@@ -31,3 +38,10 @@ class NoteClass:
     def adjustDuration(self, something):
         # adjust duration here
         pass
+
+
+# Mouse callback function. Appends the x,y location of mouse click to a list.
+def get_xy(event, x, y, flags, param):
+    if event == cv.EVENT_LBUTTONDOWN:
+        print(x, y)
+        param.append((x, y))

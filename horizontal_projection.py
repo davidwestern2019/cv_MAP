@@ -6,6 +6,8 @@ import numpy as np
 def horizontal_projection_calc(img, start_row, end_row, binSize=1):
     #
     # You MUST choose a horizontal slice that has only 1 (ONE) staff in it. Any more leads to erroneous results
+    # Note: the difference between start_row and end_row must be a factor of binSize. In case its not, this program uses
+    # end_row = end_row+x, where x is needed to make the difference a multiple of binSize
     #
     # INPUTS
     #   img             = image of sheet music. MUST be binary
@@ -24,10 +26,15 @@ def horizontal_projection_calc(img, start_row, end_row, binSize=1):
     width = img.shape[1]
     height = img.shape[0]
 
+    # Adjust start and end row such that each bin has same amount of rows in it (and none are skipped)
+    start_row, end_row = adjustBounds(start_row, end_row, binSize, height)
+    print(start_row, end_row)
+
     # Loop over each row
     count_for_each_row = []
     pixel_check = 0
     for BIN in range(start_row, end_row, binSize):
+        # print("Bin count is:", BIN)
         count = 0
         # Look at each row within the binSize
         for i in range(0, binSize):
@@ -40,19 +47,29 @@ def horizontal_projection_calc(img, start_row, end_row, binSize=1):
         # append the count of black pixels
         count_for_each_row.append(count)
 
-    #print(count_for_each_row)
+    # print(count_for_each_row)
+    print("Pixel count is ", pixel_check)
+    print((end_row-start_row)*width)
     assert (pixel_check == (end_row-start_row)*width), "Error! Not every pixel was counted"
 
-    # find locations of peaks and their heights. This is euivalent to finding the staffline locations and the length of the staff lines
+    # find locations of peaks and their heights. This is equivalent to finding the staffline locations and the length
+    # of the staff lines
     peaks = 5
     peakLocations, peakHeights = findTopPeaks(count_for_each_row, peaks)
     peakLocations += start_row
     return peakLocations, peakHeights
 
+def adjustBounds(start, end, dividend, max_end_value):
+    remainder = (end-start) % dividend
+    while remainder != 0:
+        end = end+1
+        remainder = (end - start) % dividend
+        assert end < max_end_value, "Uh-oh. Ran out of room to add to end row. Check bin size"
+    return start, end
 
 
 def findTopPeaks(histogram, numPeaks=5):
-    #print(histogram)
+    # print(histogram)
     # find the five largest peaks. This assumes user includes only one staff per horizontal slice
     peakLocations = np.zeros((numPeaks, 1))
     peakHeights = np.zeros((numPeaks, 1))
@@ -105,15 +122,15 @@ def main():
     # test_img[30, :] = np.zeros((1, 256))
     # horizontal_projection_calc(test_img, start_row=5, end_row=50)
 
-    test_img = cv.imread("test_staff_img_3.jpg", cv.IMREAD_GRAYSCALE)
+    test_img = cv.imread("example_music_3.jpg", cv.IMREAD_GRAYSCALE)
     _, test_img = cv.threshold(test_img, 150, 255, cv.THRESH_BINARY)
-    # cv.imshow("Test image", test_img)
-    # cv.waitKey(0)
+    cv.imshow("Test image", test_img)
+    cv.waitKey(0)
     img_width = test_img.shape[1]
     img_height = test_img.shape[0]
     print(img_width)
     print(img_height)
-    staff_locations, staffline_lengths = horizontal_projection_calc(test_img, start_row=0, end_row=img_height)
+    staff_locations, staffline_lengths = horizontal_projection_calc(test_img, start_row=578, end_row=619, binSize=2)
     print("Locations are \n", staff_locations)
     print("Staff lengths are: \n", staffline_lengths)
     #test_img_color =np.zeros((img_height, img_width, 3))
