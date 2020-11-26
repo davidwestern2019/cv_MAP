@@ -8,7 +8,7 @@ import utilities_cv
 
 def main():
     # Use this to use a piece of sample music
-    test_img = cv.imread("example_music_4.jpg", cv.IMREAD_GRAYSCALE)
+    test_img = cv.imread("example_music_3.jpg", cv.IMREAD_GRAYSCALE)
     _, test_img = cv.threshold(test_img, 200, 255, cv.THRESH_BINARY)
 
     # create window to look at test image and click on pixels for verification purposes

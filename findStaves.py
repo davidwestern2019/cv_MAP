@@ -31,7 +31,7 @@ def findStaves(image):
     for staff in staves:
         print("Doing staff ", staff.staff_number)
         staff.dis = staffline_spacing
-        # print("Thickness is: ", staffline_thickness)
+        print("Thickness is: ", staffline_thickness)
         # print("Start: ", staff.staff_start, ", End: ", staff.staff_end)
         line_start_locations, line_lengths = horizontal_projection.horizontal_projection_calc(image,
                                             staff.staff_start, staff.staff_end,
@@ -43,12 +43,10 @@ def findStaves(image):
         # use a median staffline length to counteract scenario where horizontal_proj bin doesn't start on line
         median_staffline_length_list.append(staff.line_length)
 
+        # clean up the staff line locations. fix lines that should be connected together
         print(line_start_locations)
-        start_line_locations = np.sort(line_start_locations, axis=None)     # sort the array of line starting locations
-        staff.line_locations = []
-        for line_start in start_line_locations:
-            # create list of tuples (start, end) for each staffline
-            staff.line_locations.append((line_start, line_start+staffline_thickness))
+        staff.line_locations = improveStaffLocations(line_start_locations, staffline_thickness, line_lengths)
+        # print(staff.line_locations)
 
     # perform corrections to avoid falsely reported short line
     median_staffline_length = statistics.median(median_staffline_length_list)
@@ -66,6 +64,68 @@ def findStaves(image):
     # return list of objects. The objects represent a staff and contain staff info. List is sorted from top staff to
     # bottom
     return staves
+
+
+def improveStaffLocations(start_line_locations, staffline_thickness, line_lengths):
+    list_of_staff_locations = []    # this list is sorted by largest lines first
+    start_position_sorted_list = np.sort(start_line_locations, axis=None)
+    position_sorted_list = []
+
+    # create (start, end) tuple for each line
+    for line_start in start_line_locations:
+        # create list of tuples (start, end) for each staffline
+        list_of_staff_locations.append((line_start[0], line_start[0] + staffline_thickness))
+
+    for line_start in start_position_sorted_list:
+        # create list of tuples (start, end) for each staffline
+        position_sorted_list.append((line_start, line_start + staffline_thickness))
+
+
+    # go through each line and concatenate any lines that end where another begins
+    i = 0
+    while i < len(position_sorted_list)-1:
+        #print(i)
+        # check if end is the start of next line
+        current_begin = position_sorted_list[i][0]
+        current_end = position_sorted_list[i][1]    # end of current staff line
+        next_begin = position_sorted_list[i+1][0]   # beginning of next line
+        next_end = position_sorted_list[i+1][1]     # end of next line
+        if current_end == next_begin:
+            # avoid instances where a "line" is added, but really it is just another bin with a small amount of black
+            # pixels. Only combine the lines if they have similar lengths (# of black pixels)
+            index_in_size_list_curr = list_of_staff_locations.index((current_begin, current_end))
+            index_in_size_list_next = list_of_staff_locations.index((next_begin, next_end))
+            curr_length = line_lengths[index_in_size_list_curr]
+            next_length = line_lengths[index_in_size_list_next]
+            # use pixel difference to differentiate between actual line and bin with some black
+            pixel_diff = 30
+            if (abs(curr_length-next_length) < pixel_diff):
+                print("Found that line ", i, " and line ", i+1, " are the same line.")
+
+                # remove connected line from the sorted list
+                position_sorted_list[i] = (current_begin, next_end)
+                del position_sorted_list[i+1]
+
+                # remove connected line from the length list
+                list_of_staff_locations.remove((next_begin, next_end))
+                curr_index = list_of_staff_locations.index((current_begin, current_end))
+                list_of_staff_locations.insert(curr_index, (current_begin, next_end))
+                # del list_of_staff_locations[curr_index+1]
+                list_of_staff_locations.remove((current_begin, current_end))
+
+                # decrease iterator to go back to current line on next iteration
+                # this is for catching the case where more than two lines are connected (i.e. the same)
+                i -= 1
+        # increase iterator
+        i += 1
+
+    # take only top 5 lines (list should be sorted by longest peak to shortest)
+    five_staff_locations = []   # use this list to return just the top 5 peaks
+    print(list_of_staff_locations)
+    for i in range(0, 5):
+        five_staff_locations.append(list_of_staff_locations[i])
+
+    return five_staff_locations
 
 
 def find_line_thickness(histogram):
@@ -190,7 +250,7 @@ def find_staff_size(black_histogram):
 def main():
     # Use this to use a piece of sample music
     test_img = cv.imread("example_music_3.jpg", cv.IMREAD_GRAYSCALE)
-    _, test_img = cv.threshold(test_img, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)
+    _, test_img = cv.threshold(test_img, 180, 255, cv.THRESH_BINARY)
 
     # ---------  Use this to create custom image -------------
     # shape_test_image = (256, 256)
@@ -200,14 +260,16 @@ def main():
     # cv.imshow("Test image", test_img)
     # cv.waitKey(0)
 
-    findStaves(test_img)
-
     picked_point = []
     pick_window = "Test Image"
     cv.namedWindow(pick_window, cv.WINDOW_NORMAL)
     cv.setMouseCallback(pick_window, utilities_cv.get_xy, picked_point)
     cv.imshow(pick_window, test_img)
     cv.waitKey(0)
+
+    findStaves(test_img)
+
+
 
 if __name__ == '__main__':
     main()

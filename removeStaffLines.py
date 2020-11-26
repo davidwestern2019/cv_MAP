@@ -23,7 +23,7 @@ def removeLines(img, staves):
             bottom = int(line[1])
             print(top, bottom)
             for col in range(0, width):
-                if image[top-1, col] != 0 or image[bottom+1, col] != 0:
+                if image[top-1, col] != 0 and image[bottom+1, col] != 0:
                     image[top:bottom, col] = 255
     return image
 
