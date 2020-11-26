@@ -75,7 +75,9 @@ def findTopPeaks(histogram, numPeaks=5):
     peakLocations = np.zeros((numPeaks, 1))
     peakHeights = np.zeros((numPeaks, 1))
 
-    assert (len(histogram) >= numPeaks)
+    while (len(histogram) < numPeaks):
+        numPeaks -= 1
+        print("Adjusting number of peaks...")
 
     for i in range(0, numPeaks):
         #print(i)

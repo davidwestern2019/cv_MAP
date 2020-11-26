@@ -5,6 +5,7 @@ import morphOps
 import horizontal_projection
 import utilities_cv
 import statistics
+import operator
 
 def findStaves(image):
     # This program takes a sheet of music and finds the locations of the stafflines, their thickness, spacing, and ...
@@ -44,9 +45,9 @@ def findStaves(image):
         median_staffline_length_list.append(staff.line_length)
 
         # clean up the staff line locations. fix lines that should be connected together
-        print(line_start_locations)
+        # print(line_start_locations)
         staff.line_locations = improveStaffLocations(line_start_locations, staffline_thickness, line_lengths)
-        # print(staff.line_locations)
+        print(staff.line_locations)
 
     # perform corrections to avoid falsely reported short line
     median_staffline_length = statistics.median(median_staffline_length_list)
@@ -100,7 +101,7 @@ def improveStaffLocations(start_line_locations, staffline_thickness, line_length
             # use pixel difference to differentiate between actual line and bin with some black
             pixel_diff = 30
             if (abs(curr_length-next_length) < pixel_diff):
-                print("Found that line ", i, " and line ", i+1, " are the same line.")
+                # print("Found that line ", i, " and line ", i+1, " are the same line.")
 
                 # remove connected line from the sorted list
                 position_sorted_list[i] = (current_begin, next_end)
@@ -121,9 +122,11 @@ def improveStaffLocations(start_line_locations, staffline_thickness, line_length
 
     # take only top 5 lines (list should be sorted by longest peak to shortest)
     five_staff_locations = []   # use this list to return just the top 5 peaks
-    print(list_of_staff_locations)
+    # print(list_of_staff_locations)
     for i in range(0, 5):
         five_staff_locations.append(list_of_staff_locations[i])
+
+    five_staff_locations = sorted(five_staff_locations, key=operator.itemgetter(0))
 
     return five_staff_locations
 
