@@ -13,6 +13,7 @@ class StaffClass:
                             # from top line first to bottom line last
     dis = None              # this is the spacing between the staff lines. helps determine font (Roth 1994)
     line_length = None      # length of staff lines. Also is the width of the entire staff
+    notes = None            # this is a list of notes in order from left to right. Notes are instances of NoteClass
 
     def __init__(self, num):
         self.staff_number = num
@@ -23,6 +24,7 @@ class NoteClass:
     duration = None         # how long the note is held for
     orig_pitch = None       # pitch of note without looking at key signature or accidentals
     orig_dur = None         # duration of note without any modifications (like dots)
+    location = None         # tuple (row, column) of the note's location
 
     def adjustPitch(self, accidental):
         if accidental == 'flat':
