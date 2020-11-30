@@ -20,3 +20,5 @@ def labelNotes(image, staves):
     for staff in staves:
         # go to to each note
         for note in staff.notes:
+            row, col = note.location
+            utilities_cv.midiNum2Letter(note.pitch, accidental=note.accidental)

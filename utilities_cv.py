@@ -5,6 +5,7 @@
 import cv2 as cv
 import sys
 
+
 class StaffClass:
     staff_number = None     # this represents whether its the 1st, 2nd, 3rd, etc staff encountered when going down the page
     staff_start = None      # pixel/row where the staff begins
@@ -20,11 +21,14 @@ class StaffClass:
 
 
 class NoteClass:
-    pitch = None            # pitch of note
+    pitch = None            # pitch of note. use MIDI note system. refer to MIDIutil for info
     duration = None         # how long the note is held for
     orig_pitch = None       # pitch of note without looking at key signature or accidentals
     orig_dur = None         # duration of note without any modifications (like dots)
     location = None         # tuple (row, column) of the note's location
+    accidental = None       # Either None, 'sharp', or 'flat'. The latter two being strings
+                            # put a flag here to signify that a note is sharp or flat.
+                            # this is for labeling the notes correctly (MIDI doesn't know sharp vs flat)
 
     def adjustPitch(self, accidental):
         if accidental == 'flat':
@@ -47,3 +51,30 @@ def get_xy(event, x, y, flags, param):
     if event == cv.EVENT_LBUTTONDOWN:
         print(x, y)
         param.append((x, y))
+
+
+# function to turn MIDI note number into letter
+def midiNum2Letter(note_num, accidental=None):
+    # INPUT
+    # -- note_num   =   this is a number in MIDI numbering that corresponds to a note
+    # OUTPUT
+    # -- letter     =   letter of the note. Does NOT include the number of the note
+
+    # this array of strings has the note letters and whether they're sharp or flat
+    array_letters = ('G#Ab', 'A', 'A#Bb', 'B', 'C', 'C#Db', 'D', 'D#Eb', 'E', 'F', 'F#Gb', 'G')
+
+    index = note_num % 12
+    note = array_letters[index] # there are only 12 notes in an octave. midi numbers start at A = 1
+    letter = ''
+    if accidental == 'sharp':   # note is sharp
+        letter = note[0:1]
+    elif accidental == 'flat':
+        letter = note[2:]       # note is flat
+    else:
+        if len(note) == 4:
+            letter = note[0:1]  # by default, use sharp if no indication is given
+        else:
+            letter = note       # just a plain letter. No sharp or flat
+    return letter
+
+
