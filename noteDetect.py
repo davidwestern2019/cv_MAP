@@ -32,18 +32,18 @@ def get_xy(event, x, y, flags, param):
     return param
 
 
-def noteDetect():
+def noteDetect(staves, img):
     print("running noteDetect")
-    img = cv.imread('example_music_1.jpg')
-    # cv.namedWindow("img", cv.WINDOW_NORMAL)
+
+    # read in image manually from directory for testing
+    # img = cv.imread('example_music_1.jpg')
     cv.imshow("image read in", img)
-    # values = []
-    # cv.setMouseCallback("img", get_xy, values)
     cv.waitKey(0)
-    # print(values)
+
     filledTemplate = cv.imread('filled_head.png')
     halfTemplate = cv.imread('half_head.png')
     wholeTemplate = cv.imread('whole_head.png')
+
     cv.imshow("filledTemplate", filledTemplate)
     cv.waitKey(0)
     scale = 0.021
@@ -60,8 +60,7 @@ def noteDetect():
     r_filled = cv.resize(filledTemplate, dim, interpolation=cv.INTER_AREA)
     r_half = cv.resize(halfTemplate, dim, interpolation=cv.INTER_AREA)
     r_whole = cv.resize(wholeTemplate, wdim, interpolation=cv.INTER_AREA)
-    cv.imshow("r_filled", r_filled)
-    cv.waitKey(0)
+
     F = cv.matchTemplate(img, r_filled, cv.TM_CCOEFF_NORMED)
     cv.imshow("filled scores", F)
     cv.waitKey(0)
@@ -101,6 +100,8 @@ def noteDetect():
 
     cv.imshow("img box", img)
     cv.waitKey(0)
+
+    return staves
 
 
 def main():
