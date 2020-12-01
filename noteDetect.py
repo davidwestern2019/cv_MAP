@@ -44,8 +44,6 @@ def noteDetect(staves, img):
     halfTemplate = cv.imread('half_head.png')
     wholeTemplate = cv.imread('whole_head.png')
 
-    cv.imshow("filledTemplate", filledTemplate)
-    cv.waitKey(0)
     scale = 0.021
     width = int(filledTemplate.shape[1] * scale)
     height = int(filledTemplate.shape[0] * scale)
