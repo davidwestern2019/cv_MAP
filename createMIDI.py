@@ -1,6 +1,5 @@
-#!/usr/bin/env python
-
 from midiutil import MIDIFile
+import pygame
 
 degrees  = [60, 62, 64, 65, 67, 69, 71, 72]  # MIDI note number
 track    = 0
