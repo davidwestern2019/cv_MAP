@@ -40,9 +40,9 @@ def noteDetect(staves, img):
     cv.imshow("image read in", img)
     cv.waitKey(0)
 
-    filledTemplate = cv.imread('filled_head.png')
-    halfTemplate = cv.imread('half_head.png')
-    wholeTemplate = cv.imread('whole_head.png')
+    filledTemplate = cv.imread('filled_head.png',cv.IMREAD_GRAYSCALE)
+    halfTemplate = cv.imread('half_head.png',cv.IMREAD_GRAYSCALE)
+    wholeTemplate = cv.imread('whole_head.png',cv.IMREAD_GRAYSCALE)
 
     scale = 0.021
     width = int(filledTemplate.shape[1] * scale)
@@ -58,6 +58,9 @@ def noteDetect(staves, img):
     r_filled = cv.resize(filledTemplate, dim, interpolation=cv.INTER_AREA)
     r_half = cv.resize(halfTemplate, dim, interpolation=cv.INTER_AREA)
     r_whole = cv.resize(wholeTemplate, wdim, interpolation=cv.INTER_AREA)
+
+    imgShape = r_filled.shape
+    print("Depth is ", imgShape)
 
     F = cv.matchTemplate(img, r_filled, cv.TM_CCOEFF_NORMED)
     cv.imshow("filled scores", F)
