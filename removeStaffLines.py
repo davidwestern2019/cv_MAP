@@ -21,7 +21,7 @@ def removeLines(img, staves):
             # check above and below line to see if there are any black pixels (musical features)
             top = int(line[0])
             bottom = int(line[1])
-            print(top, bottom)
+            # print(top, bottom)
             for col in range(0, width):
                 if image[top-1, col] != 0 and image[bottom+1, col] != 0:
                     image[top:bottom, col] = 255
