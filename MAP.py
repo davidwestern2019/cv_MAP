@@ -3,8 +3,11 @@
 import cv2 as cv
 import numpy as np
 import findStaves
+import noteDetect
 import removeStaffLines
 import utilities_cv
+import noteDetect
+
 
 def main():
     # Use this to use a piece of sample music
@@ -28,11 +31,15 @@ def main():
 
     # look at image with no staff lines
     cv.imshow("Staves Removes", image_no_staff)
-
+    #print(image_no_staff)
 
     cv.waitKey(0)
+
+    imagesdf = noteDetect.noteDetect()
+    cv.imshow(imagesdf)
+    cv.waitKey(0)
+    print("done")
 
 
 if __name__ == '__main__':
     main()
-
