@@ -33,7 +33,7 @@ def main():
     # cv.imshow("Staves Removes", image_no_staff)
     # cv.waitKey(0)
 
-    # imagesdf = noteDetect.noteDetect(staves, image_no_staff)
+    imagesdf = noteDetect.noteDetect(staves, image_no_staff)
     # cv.imshow(imagesdf)
     # cv.waitKey(0)
     print("done")
