@@ -30,14 +30,12 @@ def main():
     print("Removed staves")
 
     # look at image with no staff lines
-    cv.imshow("Staves Removes", image_no_staff)
-    #print(image_no_staff)
+    # cv.imshow("Staves Removes", image_no_staff)
+    # cv.waitKey(0)
 
-    cv.waitKey(0)
-
-    imagesdf = noteDetect.noteDetect()
-    cv.imshow(imagesdf)
-    cv.waitKey(0)
+    # imagesdf = noteDetect.noteDetect()
+    # cv.imshow(imagesdf)
+    # cv.waitKey(0)
     print("done")
 
 
