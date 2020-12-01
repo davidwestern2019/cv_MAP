@@ -30,9 +30,9 @@ def findStaves(image):
     median_staffline_length_list = []
     extra_bins_for_varying_line_thickness = 9
     for staff in staves:
-        # print("Doing staff ", staff.staff_number)
+        print("Doing staff ", staff.staff_number)
         staff.dis = staffline_spacing
-        # print("Thickness is: ", staffline_thickness)
+        print("Thickness is: ", staffline_thickness)
         # print("Start: ", staff.staff_start, ", End: ", staff.staff_end)
         line_start_locations, line_lengths = horizontal_projection.horizontal_projection_calc(image,
                                             staff.staff_start, staff.staff_end,
@@ -47,7 +47,7 @@ def findStaves(image):
         # clean up the staff line locations. fix lines that should be connected together
         # print(line_start_locations)
         staff.line_locations = improveStaffLocations(line_start_locations, staffline_thickness, line_lengths)
-        # print(staff.line_locations)
+        print(staff.line_locations)
 
     # perform corrections to avoid falsely reported short line
     median_staffline_length = statistics.median(median_staffline_length_list)
