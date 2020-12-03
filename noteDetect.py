@@ -86,20 +86,20 @@ def noteDetect(staves, img):
     cv.waitKey(0)
 
     F = cv.matchTemplate(img, r_filled, cv.TM_CCOEFF_NORMED)
-    cv.imshow("filled scores", F)
-    cv.waitKey(0)
+    #cv.imshow("filled scores", F)
+    #cv.waitKey(0)
 
     H = cv.matchTemplate(img, r_half, cv.TM_CCOEFF_NORMED)
-    cv.imshow("half scores", H)
-    cv.waitKey(0)
+    #cv.imshow("half scores", H)
+    #cv.waitKey(0)
 
     W = cv.matchTemplate(img, r_whole, cv.TM_CCOEFF_NORMED)
-    cv.imshow("whole scores", W)
-    cv.waitKey(0)
+    #cv.imshow("whole scores", W)
+    #cv.waitKey(0)
 
     WL = cv.matchTemplate(img, r_wholeL, cv.TM_CCOEFF_NORMED)
-    cv.imshow("whole L scores", WL)
-    cv.waitKey(0)
+    #cv.imshow("whole L scores", WL)
+    #cv.waitKey(0)
 
     QR = cv.matchTemplate(img, r_quarterRest, cv.TM_CCOEFF_NORMED)
 
@@ -113,7 +113,7 @@ def noteDetect(staves, img):
     wMatch = np.where(W >= 0.7)
     wMatchL = np.where(WL >= 0.7)
 
-    qrMatch = np.where(QR >= 0.65)
+    qrMatch = np.where(QR >= 0.58)
     erMatch = np.where(ER >= 0.65)
     srMatch = np.where(SR >= 0.65)
 
