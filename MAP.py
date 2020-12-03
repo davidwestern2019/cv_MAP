@@ -11,7 +11,7 @@ import noteDetect
 
 def main():
     # Use this to use a piece of sample music
-    test_img = cv.imread("example_music_4.jpg", cv.IMREAD_GRAYSCALE)
+    test_img = cv.imread("example_music_7.jpg", cv.IMREAD_GRAYSCALE)
     _, test_img = cv.threshold(test_img, 180, 255, cv.THRESH_BINARY)
 
     # create window to look at test image and click on pixels for verification purposes
@@ -33,10 +33,15 @@ def main():
     # cv.imshow("Staves Removes", image_no_staff)
     # cv.waitKey(0)
 
-    imagesdf = noteDetect.noteDetect(staves, image_no_staff)
-    # cv.imshow(imagesdf)
-    # cv.waitKey(0)
-    print("done")
+    #for staff in staves:
+        #cropped_image = noteDetect.staffCrop(staff, image_no_staff)
+        #image_note_detect = noteDetect.noteDetect(staves, staff, cropped_image)
+
+    # for running noteDetect on full image (testing and troubleshooting)
+    # will run multiple times for no good reason (so we don't have to change stuff in noteDetect to use this)
+    for staff in staves:
+        image_note_detect = noteDetect.noteDetect(staves, staff, image_no_staff)
+    print("Detected Notes")
 
 
 if __name__ == '__main__':

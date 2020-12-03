@@ -41,7 +41,19 @@ def resizeTemplate(scale, template):
     return scaleTemplate
 
 
-def noteDetect(staves, img):
+def staffCrop(staff, image):
+    cv.imshow("image", image)
+    cv.waitKey(0)
+    img = image[staff.staff_start:staff.staff_end + 6 * staff.dis, 0:630]
+    cv.imshow("staff crop", img)
+    cv.waitKey(0)
+    #staff.staff_start - 6 * staff.dis       (this should be the first y dimension for crop)
+    # add buffer white space to top and bottom of input sheet music so staff crop has room to work?
+    # how to maintain width? my code sucks here
+    return img
+
+
+def noteDetect(staves, staff, img):
     print("running noteDetect")
 
     # read in image manually from directory for testing
@@ -83,6 +95,13 @@ def noteDetect(staves, img):
     cv.waitKey(0)
 
     cv.imshow("resized quarter rest", r_quarterRest)
+    cv.waitKey(0)
+
+
+
+    #k = np.ones((1, 2), np.uint8)
+    #r_quarterRest = cv.morphologyEx(r_quarterRest, cv.MORPH_CLOSE, k)
+    cv.imshow("morphed quarter rest", r_quarterRest)
     cv.waitKey(0)
 
     F = cv.matchTemplate(img, r_filled, cv.TM_CCOEFF_NORMED)
