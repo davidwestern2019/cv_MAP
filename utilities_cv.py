@@ -21,14 +21,20 @@ class StaffClass:
 
 
 class NoteClass:
+    x_val = None
+    y_val = None
     pitch = None            # pitch of note. use MIDI note system. refer to MIDIutil for info
     duration = None         # how long the note is held for
     orig_pitch = None       # pitch of note without looking at key signature or accidentals
     orig_dur = None         # duration of note without any modifications (like dots)
-    location = None         # tuple (row, column) of the note's location
     accidental = None       # Either None, 'sharp', or 'flat'. The latter two being strings
                             # put a flag here to signify that a note is sharp or flat.
                             # this is for labeling the notes correctly (MIDI doesn't know sharp vs flat)
+
+    def __init__(self, dur, x, y):
+        self.orig_dur = dur
+        self.x_val = x
+        self.y_val = y
 
     def adjustPitch(self, accidental):
         if accidental == 'flat':
