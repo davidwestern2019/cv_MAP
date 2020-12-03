@@ -1,5 +1,6 @@
 import cv2 as cv
 import numpy as np
+import utilities_cv
 
 
 def remove_dupes(match):
@@ -32,6 +33,14 @@ def get_xy(event, x, y, flags, param):
     return param
 
 
+def resizeTemplate(scale, template):
+    width = int(template.shape[1] * scale)
+    height = int(template.shape[0] * scale)
+    dim = (width, height)
+    scaleTemplate = cv.resize(template, dim, interpolation=cv.INTER_AREA)
+    return scaleTemplate
+
+
 def noteDetect(staves, img):
     print("running noteDetect")
 
@@ -40,11 +49,17 @@ def noteDetect(staves, img):
     cv.imshow("image read in", img)
     cv.waitKey(0)
 
-    filledTemplate = cv.imread('filled_head.png',cv.IMREAD_GRAYSCALE)
-    halfTemplate = cv.imread('half_head.png',cv.IMREAD_GRAYSCALE)
-    wholeTemplate = cv.imread('whole_head.png',cv.IMREAD_GRAYSCALE)
+    filledTemplate = cv.imread('filled_head.png', cv.IMREAD_GRAYSCALE)
+    halfTemplate = cv.imread('half_head.png', cv.IMREAD_GRAYSCALE)
+    wholeTemplate = cv.imread('whole_head.png', cv.IMREAD_GRAYSCALE)
+    wholeTemplateL = cv.imread('whole_head_line.png', cv.IMREAD_GRAYSCALE)
 
-    scale = 0.021
+    quarterRestTemplate = cv.imread('quarter_rest.png', cv.IMREAD_GRAYSCALE)
+    eighthRestTemplate = cv.imread('eighth_rest.png', cv.IMREAD_GRAYSCALE)
+    sixteenthRestTemplate = cv.imread('sixteenth_rest.png', cv.IMREAD_GRAYSCALE)
+
+    scale = (staves[0].dis + 3) / filledTemplate.shape[0]
+
     width = int(filledTemplate.shape[1] * scale)
     height = int(filledTemplate.shape[0] * scale)
     dim = (width, height)
@@ -52,20 +67,27 @@ def noteDetect(staves, img):
     wdim = (wwidth, height)
     temp_x = width
     temp_y = height
-    print(0.9 * temp_x)
-    print(0.9 * temp_y)
+    # print(0.9 * temp_x)
+    # print(0.9 * temp_y)
 
     r_filled = cv.resize(filledTemplate, dim, interpolation=cv.INTER_AREA)
     r_half = cv.resize(halfTemplate, dim, interpolation=cv.INTER_AREA)
     r_whole = cv.resize(wholeTemplate, wdim, interpolation=cv.INTER_AREA)
+    r_wholeL = cv.resize(wholeTemplateL, wdim, interpolation=cv.INTER_AREA)
 
-    imgShape = r_filled.shape
-    print("Depth is ", imgShape)
+    r_quarterRest = resizeTemplate(scale, quarterRestTemplate)
+    r_eighthRest = resizeTemplate(scale, eighthRestTemplate)
+    r_sixteenthRest = resizeTemplate(scale, sixteenthRestTemplate)
+
+    cv.imshow("resized filled", r_filled)
+    cv.waitKey(0)
+
+    cv.imshow("resized quarter rest", r_quarterRest)
+    cv.waitKey(0)
 
     F = cv.matchTemplate(img, r_filled, cv.TM_CCOEFF_NORMED)
     cv.imshow("filled scores", F)
     cv.waitKey(0)
-    print(F)
 
     H = cv.matchTemplate(img, r_half, cv.TM_CCOEFF_NORMED)
     cv.imshow("half scores", H)
@@ -75,32 +97,74 @@ def noteDetect(staves, img):
     cv.imshow("whole scores", W)
     cv.waitKey(0)
 
-    thresh = 0.75
-    fMatch = np.where(F >= thresh)
-    print(fMatch)
-    hMatch = np.where(H >= 0.5)
-    wMatch = np.where(W >= thresh)
+    WL = cv.matchTemplate(img, r_wholeL, cv.TM_CCOEFF_NORMED)
+    cv.imshow("whole L scores", WL)
+    cv.waitKey(0)
+
+    QR = cv.matchTemplate(img, r_quarterRest, cv.TM_CCOEFF_NORMED)
+
+    ER = cv.matchTemplate(img, r_eighthRest, cv.TM_CCOEFF_NORMED)
+
+    SR = cv.matchTemplate(img, r_sixteenthRest, cv.TM_CCOEFF_NORMED)
+
+    #thresh =
+    fMatch = np.where(F >= 0.6)
+    hMatch = np.where(H >= 0.45)
+    wMatch = np.where(W >= 0.7)
+    wMatchL = np.where(WL >= 0.7)
+
+    qrMatch = np.where(QR >= 0.65)
+    erMatch = np.where(ER >= 0.65)
+    srMatch = np.where(SR >= 0.65)
 
     fMatch = np.asarray(fMatch)
-    print(fMatch)
     hMatch = np.asarray(hMatch)
     wMatch = np.asarray(wMatch)
+    wMatchL = np.asarray(wMatchL)
+    qrMatch = np.asarray(qrMatch)
+    erMatch = np.asarray(erMatch)
+    srMatch = np.asarray(srMatch)
 
     fMatch = remove_dupes(fMatch)
     hMatch = remove_dupes(hMatch)
     wMatch = remove_dupes(wMatch)
+    wMatchL = remove_dupes(wMatchL)
+    qrMatch = remove_dupes(qrMatch)
+    erMatch = remove_dupes(erMatch)
+    srMatch = remove_dupes(srMatch)
+
+    img = cv.cvtColor(img, cv.COLOR_GRAY2BGR)
 
     for i in range(len(fMatch[1])):
-        cv.rectangle(img, (fMatch[1, i], fMatch[0, i]), (fMatch[1, i] + temp_x, fMatch[0, i] + temp_y), (0, 0, 255), 0)
+        cv.rectangle(img, (fMatch[1, i], fMatch[0, i]), (fMatch[1, i] + temp_x, fMatch[0, i] + temp_y), (0, 0, 255))
 
     for i in range(len(hMatch[1])):
-        cv.rectangle(img, (hMatch[1, i], hMatch[0, i]), (hMatch[1, i] + temp_x, hMatch[0, i] + temp_y), (0, 255, 0), 1)
+        cv.rectangle(img, (hMatch[1, i], hMatch[0, i]), (hMatch[1, i] + temp_x, hMatch[0, i] + temp_y), (0, 255, 0))
 
     for i in range(len(wMatch[1])):
-        cv.rectangle(img, (wMatch[1, i], wMatch[0, i]), (wMatch[1, i] + wwidth, wMatch[0, i] + temp_y), (255, 0, 0), 1)
+        cv.rectangle(img, (wMatch[1, i], wMatch[0, i]), (wMatch[1, i] + wwidth, wMatch[0, i] + temp_y), (255, 0, 0))
+
+    for i in range(len(wMatchL[1])):
+        cv.rectangle(img, (wMatchL[1, i], wMatchL[0, i]), (wMatchL[1, i] + wwidth, wMatchL[0, i] + temp_y), (255, 0, 0))
+
+    for i in range(len(qrMatch[1])):
+        cv.rectangle(img, (qrMatch[1, i], qrMatch[0, i]), (qrMatch[1, i] + temp_x, qrMatch[0, i] + temp_y), (0, 152, 255)) # yellow
+
+    for i in range(len(erMatch[1])):
+        cv.rectangle(img, (erMatch[1, i], erMatch[0, i]), (erMatch[1, i] + temp_x, erMatch[0, i] + temp_y), (255, 0, 255)) # pink
+
+    for i in range(len(srMatch[1])):
+        cv.rectangle(img, (srMatch[1, i], srMatch[0, i]), (srMatch[1, i] + temp_x, srMatch[0, i] + temp_y), (255, 255, 0)) # turquoise
 
     cv.imshow("img box", img)
     cv.waitKey(0)
+
+    for j in range(len(staves)):
+        for i in range(len(fMatch[1])):
+            if staves[j].staff_start - 6 * staves[j].dis < fMatch[0, i] < staves[0].staff_end + 6 * staves[0].dis:
+                new_note = utilities_cv.StaffClass(j).notes
+
+
 
     return staves
 
