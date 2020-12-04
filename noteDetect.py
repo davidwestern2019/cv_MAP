@@ -69,6 +69,7 @@ def noteDetect(staff, img):
     quarterRestTemplate = cv.imread('quarter_rest.png', cv.IMREAD_GRAYSCALE)
     eighthRestTemplate = cv.imread('eighth_rest.png', cv.IMREAD_GRAYSCALE)
     sixteenthRestTemplate = cv.imread('sixteenth_rest.png', cv.IMREAD_GRAYSCALE)
+    halfRestTemplate = cv.imread('half_rest.png', cv.IMREAD_GRAYSCALE)
 
     scale = (staff.dis + 3) / filledTemplate.shape[0]
 
@@ -90,6 +91,7 @@ def noteDetect(staff, img):
     r_quarterRest = resizeTemplate(scale, quarterRestTemplate)
     r_eighthRest = resizeTemplate(scale, eighthRestTemplate)
     r_sixteenthRest = resizeTemplate(scale, sixteenthRestTemplate)
+    r_halfRest = resizeTemplate(scale, halfRestTemplate)
 
     cv.imshow("resized filled", r_filled)
     cv.waitKey(0)
@@ -105,20 +107,12 @@ def noteDetect(staff, img):
     cv.waitKey(0)
 
     F = cv.matchTemplate(img, r_filled, cv.TM_CCOEFF_NORMED)
-    #cv.imshow("filled scores", F)
-    #cv.waitKey(0)
 
     H = cv.matchTemplate(img, r_half, cv.TM_CCOEFF_NORMED)
-    #cv.imshow("half scores", H)
-    #cv.waitKey(0)
 
     W = cv.matchTemplate(img, r_whole, cv.TM_CCOEFF_NORMED)
-    #cv.imshow("whole scores", W)
-    #cv.waitKey(0)
 
     WL = cv.matchTemplate(img, r_wholeL, cv.TM_CCOEFF_NORMED)
-    #cv.imshow("whole L scores", WL)
-    #cv.waitKey(0)
 
     QR = cv.matchTemplate(img, r_quarterRest, cv.TM_CCOEFF_NORMED)
     cv.imshow("quarter rest scores", QR)
@@ -128,6 +122,8 @@ def noteDetect(staff, img):
 
     SR = cv.matchTemplate(img, r_sixteenthRest, cv.TM_CCOEFF_NORMED)
 
+    HR = cv.matchTemplate(img, r_halfRest, cv.TM_CCOEFF_NORMED)
+
     #thresh =
     fMatch = np.where(F >= 0.6)
     hMatch = np.where(H >= 0.5)
@@ -135,9 +131,9 @@ def noteDetect(staff, img):
     wMatchL = np.where(WL >= 0.7)
 
     qrMatch = np.where(QR >= 0.58)
-    #0.58
     erMatch = np.where(ER >= 0.65)
     srMatch = np.where(SR >= 0.65)
+    hrMatch = np.where(HR >= 0.65)
 
     fMatch = np.asarray(fMatch)
     hMatch = np.asarray(hMatch)
@@ -146,6 +142,7 @@ def noteDetect(staff, img):
     qrMatch = np.asarray(qrMatch)
     erMatch = np.asarray(erMatch)
     srMatch = np.asarray(srMatch)
+    hrMatch = np.asarray(hrMatch)
 
     fMatch = remove_dupes(fMatch)
     hMatch = remove_dupes(hMatch)
@@ -154,6 +151,7 @@ def noteDetect(staff, img):
     qrMatch = remove_dupes(qrMatch)
     erMatch = remove_dupes(erMatch)
     srMatch = remove_dupes(srMatch)
+    hrMatch = remove_dupes(hrMatch)
 
     img = cv.cvtColor(img, cv.COLOR_GRAY2BGR)
 
@@ -178,15 +176,52 @@ def noteDetect(staff, img):
     for i in range(len(srMatch[1])):
         cv.rectangle(img, (srMatch[1, i], srMatch[0, i]), (srMatch[1, i] + temp_x, srMatch[0, i] + temp_y), (255, 255, 0)) # turquoise
 
+    for i in range(len(hrMatch[1])):
+        cv.rectangle(img, (hrMatch[1, i], hrMatch[0, i]), (hrMatch[1, i] + temp_x, hrMatch[0, i] + temp_y), (0, 255, 135)) # green turquoise
+
     cv.imshow("img box", img)
     cv.waitKey(0)
 
-    #new_note = utilities_cv.StaffClass(j).notes
     notes = []
     quarter_dur = 1
+    half_dur = 2 * quarter_dur
+    whole_dur = 4 * quarter_dur
+    eighth_dur = quarter_dur / 2
+    sixteenth_dur = quarter_dur / 4
+
     for i in range(len(fMatch[1])):
         new_note = utilities_cv.NoteClass(quarter_dur, fMatch[1, i], fMatch[0, i])
         notes.append(new_note)
+
+    for i in range(len(hMatch[1])):
+        new_note = utilities_cv.NoteClass(half_dur, hMatch[1, i], hMatch[0, i])
+        notes.append(new_note)
+
+    for i in range(len(wMatch[1])):
+        new_note = utilities_cv.NoteClass(whole_dur, wMatch[1, i], wMatch[1, i])
+        notes.append(new_note)
+
+    for i in range(len(wMatchL[1])):
+        new_note = utilities_cv.NoteClass(whole_dur, wMatchL[1, i], wMatchL[1, i])
+        notes.append(new_note)
+
+    for i in range(len(qrMatch[1])):
+        new_note = utilities_cv.NoteClass(quarter_dur, qrMatch[1, i], None)
+        notes.append(new_note)
+
+    for i in range(len(erMatch[1])):
+        new_note = utilities_cv.NoteClass(eighth_dur, erMatch[1, i], None)
+        notes.append(new_note)
+
+    for i in range(len(srMatch[1])):
+        new_note = utilities_cv.NoteClass(sixteenth_dur, srMatch[1, i], None)
+        notes.append(new_note)
+
+    for i in range(len(hrMatch[1])):
+        new_note = utilities_cv.NoteClass(half_dur, hrMatch[1, i], None)
+        notes.append(new_note)
+
+    
 
     # for i in range(len(hMatch[1])):
     #
