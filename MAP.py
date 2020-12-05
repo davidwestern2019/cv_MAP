@@ -35,6 +35,8 @@ def main():
     # cv.imshow("Staves Removes", image_no_staff)
     # cv.waitKey(0)
 
+
+
     for staff in staves:
         cropped_image = noteDetect.staffCrop(staff, image_no_staff)
         staff, image_note_detect = noteDetect.noteDetect(staff, cropped_image)

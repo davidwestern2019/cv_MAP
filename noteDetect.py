@@ -1,11 +1,10 @@
 import cv2 as cv
 import numpy as np
 import utilities_cv
+import operator
 
 
-def remove_dupes(match):
-    temp_x = 16.2
-    temp_y = 13.5
+def remove_dupes(match, width, height):
     # while loops used here as to prevent indexing errors when iterating through matrix which is being reduced
     i = 0
     while i < len(match[1]):
@@ -14,8 +13,8 @@ def remove_dupes(match):
             if j != i:
                 # compare each match against all other matches to see if it is within a distance of other matches
                 # the distance used here is actually the template size
-                if abs(match[1, i] - match[1, j]) < temp_x:
-                    if abs(match[0, i] - match[0, j]) < temp_y:
+                if abs(match[1, i] - match[1, j]) < width:
+                    if abs(match[0, i] - match[0, j]) < height:
                         # delete any duplicate matches
                         match = np.delete(match, j, 1)
 
@@ -41,15 +40,34 @@ def resizeTemplate(scale, template):
     return scaleTemplate
 
 
+def lineLoc(i, staff):
+    l = (staff.line_locations[i][0] + staff.line_locations[i][1]) / 2
+    return l
+
+
 def staffCrop(staff, image):
     cv.imshow("image", image)
     cv.waitKey(0)
-    img = image[staff.staff_start:staff.staff_end + 6 * staff.dis, :]
+    staff.l1 = lineLoc(0, staff)
+    staff.l2 = lineLoc(1, staff)
+    staff.l3 = lineLoc(2, staff)
+    staff.l4 = lineLoc(3, staff)
+    staff.l5 = lineLoc(4, staff)
+
+    if staff.staff_start - 6 * staff.dis < 0:
+        print("cut beginning")
+        img = image[0:staff.staff_end + 6 * staff.dis, :]
+
+    elif staff.staff_end + 6 * staff.dis > image.shape[0]:
+        print("cut end")
+        img = image[staff.staff_start - 6 * staff.dis:image.shape[0], :]
+
+    else:
+        print("not cut")
+        img = image[staff.staff_start - 6 * staff.dis:staff.staff_end + 6 * staff.dis, :]
+
     cv.imshow("staff crop", img)
     cv.waitKey(0)
-    #staff.staff_start - 6 * staff.dis       (this should be the first y dimension for crop)
-    # add buffer white space to top and bottom of input sheet music so staff crop has room to work?
-    # how to maintain width? my code sucks here
     return img
 
 
@@ -58,8 +76,8 @@ def noteDetect(staff, img):
 
     # read in image manually from directory for testing
     # img = cv.imread('example_music_1.jpg')
-    cv.imshow("image read in", img)
-    cv.waitKey(0)
+    # cv.imshow("image read in", img)
+    # cv.waitKey(0)
 
     filledTemplate = cv.imread('filled_head.png', cv.IMREAD_GRAYSCALE)
     halfTemplate = cv.imread('half_head.png', cv.IMREAD_GRAYSCALE)
@@ -70,6 +88,13 @@ def noteDetect(staff, img):
     eighthRestTemplate = cv.imread('eighth_rest.png', cv.IMREAD_GRAYSCALE)
     sixteenthRestTemplate = cv.imread('sixteenth_rest.png', cv.IMREAD_GRAYSCALE)
     halfRestTemplate = cv.imread('half_rest.png', cv.IMREAD_GRAYSCALE)
+
+    sharpTemplate = cv.imread('sharp.png', cv.IMREAD_GRAYSCALE)
+    flatTemplate = cv.imread('flat.png', cv.IMREAD_GRAYSCALE)
+    naturalTemplate = cv.imread('natural.png', cv.IMREAD_GRAYSCALE)
+
+    dotTemplate = cv.imread('dot.png', cv.IMREAD_GRAYSCALE)
+    accentTemplate = cv.imread('accent.png', cv.IMREAD_GRAYSCALE)
 
     scale = (staff.dis + 3) / filledTemplate.shape[0]
 
@@ -93,6 +118,13 @@ def noteDetect(staff, img):
     r_sixteenthRest = resizeTemplate(scale, sixteenthRestTemplate)
     r_halfRest = resizeTemplate(scale, halfRestTemplate)
 
+    r_sharp = resizeTemplate(scale, sharpTemplate)
+    r_flat = resizeTemplate(scale, flatTemplate)
+    r_natural = resizeTemplate(scale, naturalTemplate)
+
+    r_dot = resizeTemplate(scale, dotTemplate)
+    r_accent = resizeTemplate(scale, accentTemplate)
+
     cv.imshow("resized filled", r_filled)
     cv.waitKey(0)
 
@@ -104,6 +136,9 @@ def noteDetect(staff, img):
     k = np.ones((1, 2), np.uint8)
     r_quarterRest = cv.morphologyEx(r_quarterRest, cv.MORPH_CLOSE, k)
     cv.imshow("morphed quarter rest", r_quarterRest)
+    cv.waitKey(0)
+
+    cv.imshow("resized half rest", r_halfRest)
     cv.waitKey(0)
 
     F = cv.matchTemplate(img, r_filled, cv.TM_CCOEFF_NORMED)
@@ -133,7 +168,7 @@ def noteDetect(staff, img):
     qrMatch = np.where(QR >= 0.58)
     erMatch = np.where(ER >= 0.65)
     srMatch = np.where(SR >= 0.65)
-    hrMatch = np.where(HR >= 0.65)
+    hrMatch = np.where(HR >= 0.8)
 
     fMatch = np.asarray(fMatch)
     hMatch = np.asarray(hMatch)
@@ -144,14 +179,14 @@ def noteDetect(staff, img):
     srMatch = np.asarray(srMatch)
     hrMatch = np.asarray(hrMatch)
 
-    fMatch = remove_dupes(fMatch)
-    hMatch = remove_dupes(hMatch)
-    wMatch = remove_dupes(wMatch)
-    wMatchL = remove_dupes(wMatchL)
-    qrMatch = remove_dupes(qrMatch)
-    erMatch = remove_dupes(erMatch)
-    srMatch = remove_dupes(srMatch)
-    hrMatch = remove_dupes(hrMatch)
+    fMatch = remove_dupes(fMatch, width, height)
+    hMatch = remove_dupes(hMatch, width, height)
+    wMatch = remove_dupes(wMatch, width, height)
+    wMatchL = remove_dupes(wMatchL, width, height)
+    qrMatch = remove_dupes(qrMatch, width, height)
+    erMatch = remove_dupes(erMatch, width, height)
+    srMatch = remove_dupes(srMatch, width, height)
+    hrMatch = remove_dupes(hrMatch, width, height)
 
     img = cv.cvtColor(img, cv.COLOR_GRAY2BGR)
 
@@ -221,14 +256,61 @@ def noteDetect(staff, img):
         new_note = utilities_cv.NoteClass(half_dur, hrMatch[1, i], None)
         notes.append(new_note)
 
-    
+    notes.sort(key=operator.attrgetter('x_val'))
 
-    # for i in range(len(hMatch[1])):
-    #
-    # for i in range(len(qrMatch[1])):
-    #     new_note = utilities_cv.NoteClass(quarter_dur, qrMatch[1, i], None)
-    #     notes.append(new_note)
-    #
+    LCropDist = 2 * staff.dis
+    RCropDist = 4 * staff.dis
+
+    img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+    cv.imshow('dot', r_dot)
+    cv.waitKey(0)
+
+    d = staff.dis / 4
+
+    print("staff.l1", staff.l1)
+
+    for note in notes:
+        print("note.y_val", note.y_val)
+        if note.y_val is not None:
+            if staff.l1 - d < note.y_val < staff.l1 + d:
+                note.pitch = 77
+            if staff.l1 + d < note.y_val < staff.l2 - d:
+                note.pitch = 76
+            if staff.l2 - d < note.y_val < staff.l2 + d:
+                note.pitch = 74
+            if staff.l2 + d < note.y_val < staff.l3 - d:
+                note.pitch = 72
+            if staff.l3 - d < note.y_val < staff.l3 + d:
+                note.pitch = 71
+            if staff.l3 + d < note.y_val < staff.l4 - d:
+                note.pitch = 69
+            if staff.l4 - d < note.y_val < staff.l4 + d:
+                note.pitch = 67
+            if staff.l4 + d < note.y_val < staff.l5 - d:
+                note.pitch = 65
+            if staff.l5 - d < note.y_val < staff.l5 + d:
+                note.pitch = 64
+
+    for note in notes:
+        if note.y_val is not None:
+            print(note.pitch)
+    # for note in notes:
+    #     crop = img[:, note.x_val - LCropDist:note.x_val + RCropDist]
+    #     D = cv.matchTemplate(crop, r_dot, cv.TM_CCOEFF_NORMED)
+    #     dMatch = np.where(D >= 0.8)
+    #     dMatch = np.asarray(dMatch)
+    #     dMatchT = dMatch.transpose()
+    #     print("dMatchT", dMatch)
+    #     if dMatch is not None:
+    #         for match in dMatchT:
+    #             print("match", match)
+    #         #     if abs(note.y_val - match[0])
+    #         # note.duration = 1.5 * note.orig_dur
+    #         print("dot found")
+
+        # cv.imshow('crop', crop)
+        # cv.waitKey(0)
+
     # constant = #something scaled by dis
     #
     # for note in notes:
