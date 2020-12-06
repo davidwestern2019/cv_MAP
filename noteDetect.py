@@ -395,7 +395,7 @@ def noteDetect(staff, img):
 
     # if connected components covers more than one x_val in notesclass
 
-
+    staff.notes.append(notes)
 
     return staff, img
 
