@@ -1,5 +1,5 @@
 import pygame
-import io
+import createMIDI
 
 def play_music_file(music_file):
     """
@@ -27,8 +27,9 @@ def play_music(music_file):
 
 
 def main():
+    createMIDI.testMIDI()
     music_file = "major-scale.mid"
-
+    play_music(music_file)
 
 
 
