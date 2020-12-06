@@ -77,6 +77,8 @@ def testStaves():
     # staff 1
     staff1 = utilities_cv.StaffClass(1)
     staff1.notes = []
+    staff1.staff_end = 50
+    staff1.dis = 4
     for i in range(4):
         note = utilities_cv.NoteClass(1, 0, 0)
         note.pitch = 60
@@ -86,6 +88,8 @@ def testStaves():
     # staff 2
     staff2 = utilities_cv.StaffClass(2)
     staff2.notes = []
+    staff2.staff_end = 150
+    staff2.dis = 4
     for i in range(8):
         note = utilities_cv.NoteClass(1/2, 0, 0)
         note.pitch = 68

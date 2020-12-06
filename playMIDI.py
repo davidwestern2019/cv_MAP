@@ -1,6 +1,7 @@
 import pygame
 import createMIDI
 
+
 def play_music_file(music_file):
     """
     stream music with mixer.music module in blocking manner
@@ -35,7 +36,6 @@ def main():
 
     music_file += ".mid"
     play_music(music_file)
-
 
 
 if __name__ == '__main__':
