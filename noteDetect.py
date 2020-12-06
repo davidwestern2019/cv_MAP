@@ -267,33 +267,58 @@ def noteDetect(staff, img):
 
     d = staff.dis / 4
 
+    h = temp_y / 2
+
+    staff.l1 = staff.l1 - h
+    staff.l2 = staff.l2 - h
+    staff.l3 = staff.l3 - h
+    staff.l4 = staff.l4 - h
+    staff.l5 = staff.l5 - h
+
     print("staff.l1", staff.l1)
 
     for note in notes:
         print("note.y_val", note.y_val)
         if note.y_val is not None:
-            if staff.l1 - d < note.y_val < staff.l1 + d:
-                note.pitch = 77
-            if staff.l1 + d < note.y_val < staff.l2 - d:
-                note.pitch = 76
-            if staff.l2 - d < note.y_val < staff.l2 + d:
-                note.pitch = 74
-            if staff.l2 + d < note.y_val < staff.l3 - d:
-                note.pitch = 72
-            if staff.l3 - d < note.y_val < staff.l3 + d:
-                note.pitch = 71
-            if staff.l3 + d < note.y_val < staff.l4 - d:
-                note.pitch = 69
-            if staff.l4 - d < note.y_val < staff.l4 + d:
-                note.pitch = 67
-            if staff.l4 + d < note.y_val < staff.l5 - d:
-                note.pitch = 65
-            if staff.l5 - d < note.y_val < staff.l5 + d:
-                note.pitch = 64
+            if staff.l1 - 5 * d <= note.y_val <= staff.l1 - 4 * d:
+                note.orig_pitch = 84
+            if staff.l1 - 4 * d <= note.y_val <= staff.l1 - 3 * d:
+                note.orig_pitch = 83
+            if staff.l1 - 3 * d <= note.y_val <= staff.l1 - 2 * d:
+                note.orig_pitch = 81
+            if staff.l1 - 2 * d <= note.y_val <= staff.l1 - d:
+                note.orig_pitch = 79
+            if staff.l1 - d <= note.y_val <= staff.l1 + d:
+                note.orig_pitch = 77
+            if staff.l1 + d <= note.y_val <= staff.l2 - d:
+                note.orig_pitch = 76
+            if staff.l2 - d <= note.y_val <= staff.l2 + d:
+                note.orig_pitch = 74
+            if staff.l2 + d <= note.y_val <= staff.l3 - d:
+                note.orig_pitch = 72
+            if staff.l3 - d <= note.y_val <= staff.l3 + d:
+                note.orig_pitch = 71
+            if staff.l3 + d <= note.y_val <= staff.l4 - d:
+                note.orig_pitch = 69
+            if staff.l4 - d <= note.y_val <= staff.l4 + d:
+                note.orig_pitch = 67
+            if staff.l4 + d <= note.y_val <= staff.l5 - d:
+                note.orig_pitch = 65
+            if staff.l5 - d <= note.y_val <= staff.l5 + d:
+                note.orig_pitch = 64
+            if staff.l5 + d <= note.y_val <= staff.l5 + 2 * d:
+                note.orig_pitch = 62
+            if staff.l5 + 2 * d <= note.y_val <= staff.l5 + 3 * d:
+                note.orig_pitch = 60
+            if staff.l5 + 3 * d <= note.y_val <= staff.l5 + 4 * d:
+                note.orig_pitch = 59
+            if staff.l5 + 4 * d <= note.y_val <= staff.l5 + 5 * d:
+                note.orig_pitch = 57
 
     for note in notes:
         if note.y_val is not None:
-            print(note.pitch)
+            print(note.orig_pitch)
+
     # for note in notes:
     #     crop = img[:, note.x_val - LCropDist:note.x_val + RCropDist]
     #     D = cv.matchTemplate(crop, r_dot, cv.TM_CCOEFF_NORMED)
