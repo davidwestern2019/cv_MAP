@@ -27,8 +27,13 @@ def play_music(music_file):
 
 
 def main():
-    createMIDI.testMIDI()
-    music_file = "major-scale.mid"
+    # createMIDI.testMIDI()
+    staves = createMIDI.testStaves()
+    music_file = "test1"
+
+    createMIDI.createMIDI(staves, music_file)
+
+    music_file += ".mid"
     play_music(music_file)
 
 

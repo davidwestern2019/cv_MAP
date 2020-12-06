@@ -1,4 +1,5 @@
 from midiutil import MIDIFile
+import utilities_cv
 
 
 def testMIDI():
@@ -23,7 +24,7 @@ def testMIDI():
         MyMIDI.writeFile(output_file)
 
 
-def addNotestoMIDI(list_notes,music_name):
+def addNotestoMIDI(list_notes, music_name):
     # set midi parameters
     track = 0
     channel = 0
@@ -52,11 +53,15 @@ def addNotesToMidiList(staves):
     # OUTPUT: list of notes.
     notesList_for_MIDI = []
     for staff in staves:
-        if staff.Notes is None:
+        if staff.notes is None:
             print("Error! Staff does not have notes in its notes member")
         else:
             for note in staff.notes:
-                notesList_for_MIDI.append()
+                if note.duration is None:
+                    note.duration = note.orig_dur
+                    notesList_for_MIDI.append(note)
+                else:
+                    notesList_for_MIDI.append(note)
 
     return notesList_for_MIDI
 
@@ -64,3 +69,31 @@ def addNotesToMidiList(staves):
 def createMIDI(staves, music_name):
     notes_list = addNotesToMidiList(staves)
     addNotestoMIDI(notes_list, music_name)
+
+
+def testStaves():
+    staves = []
+
+    # staff 1
+    staff1 = utilities_cv.StaffClass(1)
+    staff1.notes = []
+    for i in range(4):
+        note = utilities_cv.NoteClass(1, 0, 0)
+        note.pitch = 60
+        # note.duration = 1
+        staff1.notes.append(note)
+
+    # staff 2
+    staff2 = utilities_cv.StaffClass(2)
+    staff2.notes = []
+    for i in range(8):
+        note = utilities_cv.NoteClass(1/2, 0, 0)
+        note.pitch = 68
+        # note.duration = 1/2
+        staff2.notes.append(note)
+
+    # append staff
+    staves.append(staff1)
+    staves.append(staff2)
+
+    return staves
