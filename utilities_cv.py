@@ -83,14 +83,14 @@ def midiNum2Letter(note_num, accidental=None):
         letter = note[2:]       # note is flat
     else:
         if len(note) == 4:
-            letter = note[0:1]  # by default, use sharp if no indication is given
+            letter = note[0:2]  # by default, use sharp if no indication is given
         else:
             letter = note       # just a plain letter. No sharp or flat
     return letter
 
 def main():
     # test the functions
-    letter = midiNum2Letter(67)
+    letter = midiNum2Letter(61)
     print(letter)
 
 if __name__ == '__main__':

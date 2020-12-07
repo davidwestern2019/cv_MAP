@@ -62,9 +62,11 @@ def main():
     # playMIDI.play_music(music_file)
 
     # label the images
+    print("Labeling original image...")
     label_image = labelNotes.labelNotes(orig_img, staves)
     cv.imshow("Labeled Image", label_image)
     cv.waitKey(0)
+    print("Labeled image")
 
 
 if __name__ == '__main__':
