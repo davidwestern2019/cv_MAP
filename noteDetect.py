@@ -169,7 +169,7 @@ def noteDetect(staff, img):
 
     W = cv.matchTemplate(img, r_whole, cv.TM_CCOEFF_NORMED)
 
-    WL = cv.matchTemplate(img, r_wholeL, cv.TM_CCOEFF_NORMED)
+    # WL = cv.matchTemplate(img, r_wholeL, cv.TM_CCOEFF_NORMED)
 
     QR = cv.matchTemplate(img, r_quarterRest, cv.TM_CCOEFF_NORMED)
     # cv.imshow("quarter rest scores", QR)
@@ -182,11 +182,12 @@ def noteDetect(staff, img):
     HR = cv.matchTemplate(img, r_halfRest, cv.TM_CCOEFF_NORMED)
 
     #thresh =
-    fMatch = np.where(F >= 0.6)
+    # 0.6
+    fMatch = np.where(F >= 0.7)
     hMatch = np.where(H >= 0.5)
     # 0.7
     wMatch = np.where(W >= 0.65)
-    wMatchL = np.where(WL >= 0.7)
+    # wMatchL = np.where(WL >= 0.7)
     # 0.58
     qrMatch = np.where(QR >= 0.55)
     erMatch = np.where(ER >= 0.65)
@@ -196,7 +197,7 @@ def noteDetect(staff, img):
     fMatch = np.asarray(fMatch)
     hMatch = np.asarray(hMatch)
     wMatch = np.asarray(wMatch)
-    wMatchL = np.asarray(wMatchL)
+    # wMatchL = np.asarray(wMatchL)
     qrMatch = np.asarray(qrMatch)
     erMatch = np.asarray(erMatch)
     srMatch = np.asarray(srMatch)
@@ -205,7 +206,7 @@ def noteDetect(staff, img):
     fMatch = remove_dupes(fMatch, width, height)
     hMatch = remove_dupes(hMatch, width, height)
     wMatch = remove_dupes(wMatch, width, height)
-    wMatchL = remove_dupes(wMatchL, width, height)
+    # wMatchL = remove_dupes(wMatchL, width, height)
     qrMatch = remove_dupes(qrMatch, width, height)
     erMatch = remove_dupes(erMatch, width, height)
     srMatch = remove_dupes(srMatch, width, height)
@@ -235,8 +236,8 @@ def noteDetect(staff, img):
     for i in range(len(wMatch[1])):
         cv.rectangle(box_img, (wMatch[1, i], wMatch[0, i]), (wMatch[1, i] + wwidth, wMatch[0, i] + temp_y), (255, 0, 0))
 
-    for i in range(len(wMatchL[1])):
-        cv.rectangle(box_img, (wMatchL[1, i], wMatchL[0, i]), (wMatchL[1, i] + wwidth, wMatchL[0, i] + temp_y), (255, 0, 0))
+    # for i in range(len(wMatchL[1])):
+    #     cv.rectangle(box_img, (wMatchL[1, i], wMatchL[0, i]), (wMatchL[1, i] + wwidth, wMatchL[0, i] + temp_y), (255, 0, 0))
 
     for i in range(len(qrMatch[1])):
         cv.rectangle(box_img, (qrMatch[1, i], qrMatch[0, i]), (qrMatch[1, i] + r_quarterRest.shape[1], qrMatch[0, i] + r_quarterRest.shape[0]), (0, 152, 255)) # orange
@@ -272,9 +273,9 @@ def noteDetect(staff, img):
         new_note = utilities_cv.NoteClass(whole_dur, wMatch[1, i], wMatch[0, i])
         notes.append(new_note)
 
-    for i in range(len(wMatchL[1])):
-        new_note = utilities_cv.NoteClass(whole_dur, wMatchL[1, i], wMatchL[0, i])
-        notes.append(new_note)
+    # for i in range(len(wMatchL[1])):
+    #     new_note = utilities_cv.NoteClass(whole_dur, wMatchL[1, i], wMatchL[0, i])
+    #     notes.append(new_note)
 
     # Removing false quarter rests detected on note stems by comparing matches to notehead locations
     qrMatch = np.transpose(qrMatch)
@@ -294,8 +295,8 @@ def noteDetect(staff, img):
     qrMatch = np.transpose(qrMatch)
 
     for i in range(len(qrMatch[1])):
-            new_note = utilities_cv.NoteClass(quarter_dur, qrMatch[1, i], None)
-            notes.append(new_note)
+        new_note = utilities_cv.NoteClass(quarter_dur, qrMatch[1, i], None)
+        notes.append(new_note)
 
     for i in range(len(erMatch[1])):
         new_note = utilities_cv.NoteClass(eighth_dur, erMatch[1, i], None)
@@ -327,13 +328,14 @@ def noteDetect(staff, img):
 
     d = staff.dis / 4
 
-    h = temp_y / 2
+    h = height / 2
+    hh = 0
 
-    staff.l1 = staff.l1 - h
-    staff.l2 = staff.l2 - h
-    staff.l3 = staff.l3 - h
-    staff.l4 = staff.l4 - h
-    staff.l5 = staff.l5 - h
+    staff.l1 = staff.l1 - h - hh
+    staff.l2 = staff.l2 - h - hh
+    staff.l3 = staff.l3 - h - hh
+    staff.l4 = staff.l4 - h - hh
+    staff.l5 = staff.l5 - h - hh
 
     # print("staff.l1", staff.l1)
 
@@ -366,13 +368,13 @@ def noteDetect(staff, img):
                 note.orig_pitch = 65
             if staff.l5 - d <= note.y_val <= staff.l5 + d:
                 note.orig_pitch = 64
-            if staff.l5 + d <= note.y_val <= staff.l5 + 2 * d:
+            if staff.l5 + d <= note.y_val <= staff.l5 + 3 * d:
                 note.orig_pitch = 62
-            if staff.l5 + 2 * d <= note.y_val <= staff.l5 + 3 * d:
+            if staff.l5 + 3 * d <= note.y_val <= staff.l5 + 5 * d:
                 note.orig_pitch = 60
-            if staff.l5 + 3 * d <= note.y_val <= staff.l5 + 4 * d:
+            if staff.l5 + 5 * d <= note.y_val <= staff.l5 + 7 * d:
                 note.orig_pitch = 59
-            if staff.l5 + 4 * d <= note.y_val <= staff.l5 + 5 * d:
+            if staff.l5 + 7 * d <= note.y_val <= staff.l5 + 9 * d:
                 note.orig_pitch = 57
 
     # fix staff lines

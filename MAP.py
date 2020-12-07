@@ -69,11 +69,11 @@ def main():
 
     # # create the music file
     music_file = file_name[:-3]
-    # createMIDI.createMIDI(staves_2, music_file)
+    createMIDI.createMIDI(staves, music_file)
     #
     # # play the music file
-    # music_file += "mid"
-    # playMIDI.play_music(music_file)
+    music_file += "mid"
+    playMIDI.play_music(music_file)
 
     # label the images
     print("Labeling original image...")
