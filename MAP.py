@@ -10,6 +10,7 @@ import noteDetect
 import labelNotes
 import playMIDI
 import createMIDI
+import detectBeams
 
 
 def main():
@@ -52,8 +53,12 @@ def main():
     for i in range(len(staves)):
         cropped_image = noteDetect.staffCrop(staves[i], image_no_staff)
         staves[i], image_note_detect, height, width = noteDetect.noteDetect(staves[i], cropped_image)
-
-        # find accidentals
+        staves[i] = detectBeams.detectBeams(staves[i], cropped_image, height, width)
+        for note in staves[i].notes:
+            print("Displaying the note duration values")
+            print("\t", note.duration)
+            print("")
+         # find accidentals
 
 
     # for running noteDetect on full image (testing and troubleshooting)
