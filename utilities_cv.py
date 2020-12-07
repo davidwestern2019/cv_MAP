@@ -35,6 +35,9 @@ class NoteClass:
     accidental = None       # Either None, 'sharp', or 'flat'. The latter two being strings
                             # put a flag here to signify that a note is sharp or flat.
                             # this is for labeling the notes correctly (MIDI doesn't know sharp vs flat)
+    beam_flag = False
+    # rando
+
 
     def __init__(self, dur, x, y):
         self.orig_dur = dur

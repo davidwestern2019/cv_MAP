@@ -16,7 +16,7 @@ def detectBeams(staff, img_slice_of_staff, black_head_template_height, black_hea
         note1 = staff.notes[i]
         note2 = staff.notes[i+1]
         # check if both are "quarter" notes.
-        if note1.orig_dur == 1 and note2.orig_dur == 1:
+        if (note1.duration == 1 or note1.beam_flag) and note2.duration == 1:
             # find coordinates for left note (note1)
             if note1.y_val < middle_line:
                 # Note is below middle line. Stem points up
@@ -54,12 +54,15 @@ def detectBeams(staff, img_slice_of_staff, black_head_template_height, black_hea
                 rightBot = (botLeft_x, botLeft_y)
 
             # Set threshold
-            threshold = 0.8
+            threshold = 0.95
 
             # Check if there is beam between them
             if isThereBeam(leftTop, leftBot, rightTop, rightBot, img_slice_of_staff, threshold):
-                note1.duration = 1/2
+                if note1.beam_flag == False:
+                    note1.duration = 1/2
+                    note1.beam_flag = True
                 note2.duration = 1/2
+                note2.beam_flag = True
                 staff.notes[i] = note1
                 staff.notes[i+1] = note2
                 print("Note ", i, " and ", i+1, " are eighth notes")
@@ -80,7 +83,7 @@ def isThereBeam(leftTop, leftBot, rightTop, rightBot, image, threshold):
 
     # create search box
     if leftTop[1] < rightTop[1]:
-        print("Going down")
+        # print("Going down")
         box_height = int(rightBot[1] - leftTop[1])    # height of search box
         box_width = int(rightBot[0] - leftTop[0])     # width of search box
         box_topRow = int(leftTop[1])
