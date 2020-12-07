@@ -16,7 +16,7 @@ def detectBeams(staff, img_slice_of_staff, black_head_template_height, black_hea
         note1 = staff.notes[i]
         note2 = staff.notes[i+1]
         # check if both are "quarter" notes.
-        if note1.duration == 1 and note2.duration == 1:
+        if note1.orig_dur == 1 and note2.orig_dur == 1:
             # find coordinates for left note (note1)
             if note1.y_val < middle_line:
                 # Note is below middle line. Stem points up
@@ -50,8 +50,8 @@ def detectBeams(staff, img_slice_of_staff, black_head_template_height, black_hea
                 topLeft_y = note1.y_val + 3 * dis - h / 2
                 botLeft_x = note1.x_val
                 botLeft_y = note1.y_val + 4 * dis - h / 2
-                leftTop = (topLeft_x, topLeft_y)
-                leftBot = (botLeft_x, botLeft_y)
+                rightTop = (topLeft_x, topLeft_y)
+                rightBot = (botLeft_x, botLeft_y)
 
             # Set threshold
             threshold = 0.8
