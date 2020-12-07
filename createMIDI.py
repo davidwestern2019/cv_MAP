@@ -38,8 +38,13 @@ def addNotestoMIDI(list_notes, music_name):
 
     # add notes to list
     for note in list_notes:
-        music_midi.addNote(track, channel, pitch=note.pitch, time=time, duration=note.duration, volume=volume)
-        time += note.duration
+        if note.pitch is None:
+            # there is a rest. pause for the rest's duration
+            time += note.duration
+        else:
+            # there is a note.
+            music_midi.addNote(track, channel, pitch=note.pitch, time=time, duration=note.duration, volume=volume)
+            time += note.duration
 
     # write file
     out_file_name = music_name + ".mid"

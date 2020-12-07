@@ -14,7 +14,8 @@ import createMIDI
 
 def main():
     # Use this to use a piece of sample music
-    orig_img = cv.imread("example_music_7.jpg", cv.IMREAD_GRAYSCALE)
+    file_name = "example_music_4.jpg"
+    orig_img = cv.imread(file_name, cv.IMREAD_GRAYSCALE)
     _, test_img = cv.threshold(orig_img, 180, 255, cv.THRESH_BINARY)
     # imma try some shit here
     cv.imshow("test_img", test_img)
@@ -54,11 +55,11 @@ def main():
     print("Detected Notes")
 
     # # create the music file
-    # music_file = "example_music_7"
+    music_file = file_name[:-3]
     # createMIDI.createMIDI(staves_2, music_file)
     #
     # # play the music file
-    # music_file += ".mid"
+    # music_file += "mid"
     # playMIDI.play_music(music_file)
 
     # label the images

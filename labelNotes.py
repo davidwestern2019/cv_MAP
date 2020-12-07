@@ -27,7 +27,7 @@ def labelNotes(image, staves):
         print("Staff ends at: ", vert_coord)
         print("There are ", len(staff.notes), " notes/rests in this staff.")
         for note in staff.notes:
-            # print("Note pitch is: ", note.pitch)
+            print("Note pitch is: ", note.pitch)
             if note.pitch is not None:
                 col = note.x_val
                 letter = utilities_cv.midiNum2Letter(note.pitch, accidental=note.accidental)
