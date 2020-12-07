@@ -7,12 +7,15 @@ import noteDetect
 import removeStaffLines
 import utilities_cv
 import noteDetect
+import labelNotes
+import playMIDI
+import createMIDI
 
 
 def main():
     # Use this to use a piece of sample music
-    test_img = cv.imread("example_music_7.jpg", cv.IMREAD_GRAYSCALE)
-    _, test_img = cv.threshold(test_img, 180, 255, cv.THRESH_BINARY)
+    orig_img = cv.imread("example_music_7.jpg", cv.IMREAD_GRAYSCALE)
+    _, test_img = cv.threshold(orig_img, 180, 255, cv.THRESH_BINARY)
     # imma try some shit here
     cv.imshow("test_img", test_img)
 
@@ -37,10 +40,12 @@ def main():
 
 
 
-    for staff in staves:
-        cropped_image = noteDetect.staffCrop(staff, image_no_staff)
-        staff, image_note_detect = noteDetect.noteDetect(staff, cropped_image)
+    for i in range(len(staves)):
+        cropped_image = noteDetect.staffCrop(staves[i], image_no_staff)
+        staves[i], image_note_detect = noteDetect.noteDetect(staves[i], cropped_image)
+
         # find accidentals
+
 
     # for running noteDetect on full image (testing and troubleshooting)
     # will run multiple times for no good reason (so we don't have to change stuff in noteDetect to use this)
@@ -48,7 +53,18 @@ def main():
         #image_note_detect = noteDetect.noteDetect(staves, staff, image_no_staff)
     print("Detected Notes")
 
+    # # create the music file
+    # music_file = "example_music_7"
+    # createMIDI.createMIDI(staves_2, music_file)
+    #
+    # # play the music file
+    # music_file += ".mid"
+    # playMIDI.play_music(music_file)
 
+    # label the images
+    label_image = labelNotes.labelNotes(orig_img, staves)
+    cv.imshow("Test Image", label_image)
+    cv.waitKey(0)
 
 
 if __name__ == '__main__':

@@ -88,4 +88,11 @@ def midiNum2Letter(note_num, accidental=None):
             letter = note       # just a plain letter. No sharp or flat
     return letter
 
+def main():
+    # test the functions
+    letter = midiNum2Letter(1)
+    print(letter)
+
+if __name__ == '__main__':
+    main()
 

@@ -24,10 +24,11 @@ def labelNotes(image, staves):
         dis = staff.dis
         vert_coord = staff.staff_end + dis*2
         for note in staff.notes:
-            col = note.x_val
-            letter = utilities_cv.midiNum2Letter(note.pitch, accidental=note.accidental)
-            print(letter)
-            cv.putText(image, letter, (col, vert_coord), font, font_scale, color_text, thickness=2)
+            if note.pitch is not None:
+                col = note.x_val
+                letter = utilities_cv.midiNum2Letter(note.pitch, accidental=note.accidental)
+                print(letter)
+                cv.putText(image, letter, (col, vert_coord), font, font_scale, color_text, thickness=2)
 
     return image
 
