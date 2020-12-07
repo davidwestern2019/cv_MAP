@@ -369,6 +369,8 @@ def noteDetect(staff, img):
         if note.y_val is not None:
             print("note.orig_pitch: ", note.orig_pitch)
             note.pitch = note.orig_pitch
+            note.duration = note.orig_dur
+
 
     # for note in notes:
     #     if note.y_val is not None:
