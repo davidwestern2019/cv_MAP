@@ -7,9 +7,11 @@ def detectBeams(staves):
     # OUTPUTS: staves - edited list of StaffClass objects
     pass
 
-def isThereBeam(leftTop, leftBot, rightTop, rightBot, image):
+def isThereBeam(leftTop, leftBot, rightTop, rightBot, image, threshold):
     # Looks for a beam in the given search area
     # INPUTs: four tuples of the coordinates for the vertices of the parallelogram
+    # -- image: music without staff lines
+    # -- threshold: fraction from 0 to 1. multiplied by area of search area
     # OUTPUTs: boolean. True if there is a beam. False otherwise
 
     # initialize the parallelogram object
@@ -17,20 +19,46 @@ def isThereBeam(leftTop, leftBot, rightTop, rightBot, image):
     search_area.findSlope()
 
     # create search box
-    box_height = leftTop[1] - rightBot[1]   # height of search box
-    box_width = leftTop[0] - rightBot[0]    # width of search box
-    box_topRow = leftTop[1]
-    box_topCol = leftTop[0]
-    box_botRow = rightBot[1]
-    box_botCol = rightBot[0]
-    crop_img = image[box_topRow:box_botRow, box_topCol:box_botCol]
-    cv.imshow("Cropped Image for Beam Search", crop_img)
+    if search_area.m <= 0:
+        print("Going down")
+        box_height = rightBot[1] - leftTop[1]    # height of search box
+        box_width = rightBot[0] - leftTop[0]     # width of search box
+        box_topRow = leftTop[1]
+        box_topCol = leftTop[0]
+        box_botRow = rightBot[1]
+        box_botCol = rightBot[0]
+        crop_img = image[box_topRow:box_botRow, box_topCol:box_botCol]
+    else:
+        print("Going up")
+        box_height = leftBot[1] - rightTop[1]   # box height
+        print(box_height)
+        box_width = rightBot[0] - leftTop[0]     # width of search box
+        print(box_width)
+        box_topRow = rightTop[1]
+        box_rightCol = rightTop[0]
+        box_botRow = leftBot[1]
+        box_leftCol = leftBot[0]
+        crop_img = image[box_topRow:box_botRow, box_leftCol:box_rightCol]
+        print(crop_img.shape)
+
+    win_name = "Cropped Image for Beam Search"
+    cv.namedWindow(win_name, cv.WINDOW_NORMAL)
+    cv.imshow(win_name, crop_img)
     cv.waitKey(0)
 
+    black_count = 0
     for row in range(0,box_height):
         for col in range(0,box_width):
             # Check if point is inside parallelogram
-            pass
+            point = (row, col)
+            if search_area.isInside(point): # if point is inside search area
+                if image[row, col] == 0:   # if point is black
+                    black_count += 1
+
+    if black_count >= threshold*search_area.getArea():
+        return True
+    else:
+        return False
 
 class ParallelogramClass:
     m = 0
@@ -91,9 +119,9 @@ def main():
     cv.imshow(pick_window, test_img)
     cv.waitKey(0)
 
-
-    isThereBeam(picked_point[0], picked_point[1], picked_point[2], picked_point[3], test_img)
-
+    print("Testing the beamDetector...")
+    result = isThereBeam(picked_point[0], picked_point[1], picked_point[2], picked_point[3], test_img, 0.3)
+    print("Is there a beam? ", result)
 
 if __name__ == '__main__':
     main()
