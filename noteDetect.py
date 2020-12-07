@@ -277,7 +277,7 @@ def noteDetect(staff, img):
 
     # Removing false quarter rests detected on note stems by comparing matches to notehead locations
     qrMatch = np.transpose(qrMatch)
-    print("pre process qrMatch: ", qrMatch)
+    # print("pre process qrMatch: ", qrMatch)
     # while loops used here as to prevent indexing errors when iterating through matrix which is being reduced
     i = 0
     while i < len(qrMatch):
@@ -288,7 +288,7 @@ def noteDetect(staff, img):
                     i = i - 1
         i = i + 1
 
-    print("post process qrMatch: ", qrMatch)
+    # print("post process qrMatch: ", qrMatch)
 
     qrMatch = np.transpose(qrMatch)
 
@@ -380,19 +380,6 @@ def noteDetect(staff, img):
             note.pitch = note.orig_pitch
             note.duration = note.orig_dur
 
-    # cv.imshow('8th flag', r_flag8d)
-    # cv.waitKey(0)
-    #
-    # k = np.ones((2, 2), np.uint8)
-    # r_flag8u = cv.morphologyEx(r_flag8u, cv.MORPH_CLOSE, k)
-    # r_flag8d = cv.morphologyEx(r_flag8d, cv.MORPH_CLOSE, k)
-    #
-    # cv.imshow('8th flag, morphed', r_flag8d)
-    # cv.waitKey(0)
-
-    # cv.imshow('16th flag down', r_flag16d)
-    # cv.waitKey(0)
-
     img_copy = img.copy()
 
     for note in notes:
@@ -437,84 +424,22 @@ def noteDetect(staff, img):
                     note.duration = note.orig_dur / 4
                     print("found 16th flag, down")
 
-                #
-                # f8uMatch = np.asarray(f8uMatch)
-                # f8dMatch = np.asarray(f8dMatch)
-                # f16uMatch = np.asarray(f16uMatch)
-                # f16dMatch = np.asarray(f16dMatch)
-                #
-                # f8uMatch = remove_dupes(f8uMatch, width, height)
-                # f8dMatch = remove_dupes(f8dMatch, width, height)
-                # f16uMatch = remove_dupes(f16uMatch, width, height)
-                # f16dMatch = remove_dupes(f16dMatch, width, height)
-
-
-
     LCropDist = 2 * staff.dis
     RCropDist = 3 * staff.dis
     TCropDist = 0
     BCropDist = staff.dis
-
-    # cv.imshow('pre rectangles', img)
-    # cv.waitKey(0)
 
     img_copy2 = img.copy()
 
     for note in notes:
         if note.y_val is not None:
             crop = img_copy2[round(note.y_val - d):round(note.y_val + 5 * d), round(note.x_val + width + d):round(note.x_val + width + 4 * d)]
-            cv.imshow('dot crop', crop)
-            cv.waitKey(0)
             DOT = cv.matchTemplate(crop, r_dot, cv.TM_CCOEFF_NORMED)
             dotMatch = np.where(DOT >= 0.7)
             dotMatch = np.asarray(dotMatch)
-            print("dotMatch: ", dotMatch)
-            print("len(dotMatch): ", len(dotMatch))
-            print("dotMatch.shape: ", dotMatch.shape)
-            # cv.rectangle(img_copy2, (note.y_val + TCropDist, note.x_val + LCropDist), (note.y_val + BCropDist, note.x_val + RCropDist), (0, 0, 255), 1)
-
-    # cv.imshow('rectangles for dots', img_copy2)
-    # cv.waitKey(0)
-
-    # for note in notes:
-    #     crop = img[:, note.x_val - LCropDist:note.x_val + RCropDist]
-    #     D = cv.matchTemplate(crop, r_dot, cv.TM_CCOEFF_NORMED)
-    #     dMatch = np.where(D >= 0.8)
-    #     dMatch = np.asarray(dMatch)
-    #     dMatchT = dMatch.transpose()
-    #     print("dMatchT", dMatch)
-    #     if dMatch is not None:
-    #         for match in dMatchT:
-    #             print("match", match)
-    #         #     if abs(note.y_val - match[0])
-    #         # note.duration = 1.5 * note.orig_dur
-    #         print("dot found")
-
-        # cv.imshow('crop', crop)
-        # cv.waitKey(0)
-
-    # constant = #something scaled by dis
-    #
-    # for note in notes:
-    #     # crop
-    #     crop = img[:, note.x_val - constant, note.x_val + constant]
-    #     if note.orig_dur == quarter_dur:
-    #         # template match flags
-    #         if flagmatch > thresh:
-    #             note.duration = note.orig_dur / 2
-            # assign new duration
-        # look for dots
-
-
-
-    #for i in range(len(hMatch[1])):
-
-
-    # look for flags and beams
-
-    # add rests DON'T CHECK DOTS UNTIL AFTER THIS
-
-    # if connected components covers more than one x_val in notesclass
+            if dotMatch.shape[1] != 0:
+                print("dotted note found")
+                note.duration = note.orig_dur * 1.5
 
     staff.notes = []
     staff.notes = notes
