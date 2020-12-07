@@ -134,24 +134,26 @@ def stitchLinesTogether(possible_line_locations, staff):
     is_line = False
     new_line_start = 0
     for i in range(0, len(possible_line_locations)):
-        if possible_line_locations[i] < staff_width * wiggle_room:
+        # print("Staffline ", i+start, " has a count of ", possible_line_locations[i] )
+        if possible_line_locations[i] > staff_width * wiggle_room:
             # Have found a line. It is either:
             #   1. start of new line
             #   2. continuation of line
             if not is_line:
                 # 1. Start of a new line
+                # print("\t Found start at ", i+start)
                 new_line_start = i
-            else:
-                # 2. Continuation of a line
-                pass
+                is_line = True
 
         else:
             # Have found a not line. It is either end of a line or other
             if is_line:
                 # terminate line and add location tuple to list
+                # print("\t Found end at ", i+start)
                 new_line_end = i
-                location = (new_line_start, new_line_end)
+                location = (new_line_start + start, new_line_end + start)
                 line_locations.append(location)
+                is_line = False
 
 
     # Check for more than 5 lines.
