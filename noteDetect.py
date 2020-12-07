@@ -210,33 +210,33 @@ def noteDetect(staff, img):
     srMatch = remove_dupes(srMatch, width, height)
     hrMatch = remove_dupes(hrMatch, width, height)
 
-    img = cv.cvtColor(img, cv.COLOR_GRAY2BGR)
+    box_img = cv.cvtColor(img, cv.COLOR_GRAY2BGR)
 
     for i in range(len(fMatch[1])):
-        cv.rectangle(img, (fMatch[1, i], fMatch[0, i]), (fMatch[1, i] + temp_x, fMatch[0, i] + temp_y), (0, 0, 255))
+        cv.rectangle(box_img, (fMatch[1, i], fMatch[0, i]), (fMatch[1, i] + temp_x, fMatch[0, i] + temp_y), (0, 0, 255))
 
     for i in range(len(hMatch[1])):
-        cv.rectangle(img, (hMatch[1, i], hMatch[0, i]), (hMatch[1, i] + temp_x, hMatch[0, i] + temp_y), (0, 255, 0))
+        cv.rectangle(box_img, (hMatch[1, i], hMatch[0, i]), (hMatch[1, i] + temp_x, hMatch[0, i] + temp_y), (0, 255, 0))
 
     for i in range(len(wMatch[1])):
-        cv.rectangle(img, (wMatch[1, i], wMatch[0, i]), (wMatch[1, i] + wwidth, wMatch[0, i] + temp_y), (255, 0, 0))
+        cv.rectangle(box_img, (wMatch[1, i], wMatch[0, i]), (wMatch[1, i] + wwidth, wMatch[0, i] + temp_y), (255, 0, 0))
 
     for i in range(len(wMatchL[1])):
-        cv.rectangle(img, (wMatchL[1, i], wMatchL[0, i]), (wMatchL[1, i] + wwidth, wMatchL[0, i] + temp_y), (255, 0, 0))
+        cv.rectangle(box_img, (wMatchL[1, i], wMatchL[0, i]), (wMatchL[1, i] + wwidth, wMatchL[0, i] + temp_y), (255, 0, 0))
 
     for i in range(len(qrMatch[1])):
-        cv.rectangle(img, (qrMatch[1, i], qrMatch[0, i]), (qrMatch[1, i] + r_quarterRest.shape[1], qrMatch[0, i] + r_quarterRest.shape[0]), (0, 152, 255)) # orange
+        cv.rectangle(box_img, (qrMatch[1, i], qrMatch[0, i]), (qrMatch[1, i] + r_quarterRest.shape[1], qrMatch[0, i] + r_quarterRest.shape[0]), (0, 152, 255)) # orange
 
     for i in range(len(erMatch[1])):
-        cv.rectangle(img, (erMatch[1, i], erMatch[0, i]), (erMatch[1, i] + temp_x, erMatch[0, i] + temp_y), (255, 0, 255)) # pink
+        cv.rectangle(box_img, (erMatch[1, i], erMatch[0, i]), (erMatch[1, i] + temp_x, erMatch[0, i] + temp_y), (255, 0, 255)) # pink
 
     for i in range(len(srMatch[1])):
-        cv.rectangle(img, (srMatch[1, i], srMatch[0, i]), (srMatch[1, i] + temp_x, srMatch[0, i] + temp_y), (255, 255, 0)) # turquoise
+        cv.rectangle(box_img, (srMatch[1, i], srMatch[0, i]), (srMatch[1, i] + temp_x, srMatch[0, i] + temp_y), (255, 255, 0)) # turquoise
 
     for i in range(len(hrMatch[1])):
-        cv.rectangle(img, (hrMatch[1, i], hrMatch[0, i]), (hrMatch[1, i] + temp_x, hrMatch[0, i] + temp_y), (0, 255, 135)) # green turquoise
+        cv.rectangle(box_img, (hrMatch[1, i], hrMatch[0, i]), (hrMatch[1, i] + temp_x, hrMatch[0, i] + temp_y), (0, 255, 135)) # green turquoise
 
-    cv.imshow("img boxed", img)
+    cv.imshow("img boxed", box_img)
     cv.waitKey(0)
 
     notes = []
@@ -311,8 +311,7 @@ def noteDetect(staff, img):
 
     notes.sort(key=operator.attrgetter('x_val'))
 
-    img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
-    # cv.imshow('dot', r_dot)
+      # cv.imshow('dot', r_dot)
     # cv.waitKey(0)
 
     d = staff.dis / 4
@@ -325,10 +324,10 @@ def noteDetect(staff, img):
     staff.l4 = staff.l4 - h
     staff.l5 = staff.l5 - h
 
-    print("staff.l1", staff.l1)
+    # print("staff.l1", staff.l1)
 
     for note in notes:
-        print("note.y_val", note.y_val)
+        # print("note.y_val", note.y_val)
         if note.y_val is not None:
             if staff.l1 - 5 * d <= note.y_val <= staff.l1 - 4 * d:
                 note.orig_pitch = 84
@@ -367,30 +366,66 @@ def noteDetect(staff, img):
 
     for note in notes:
         if note.y_val is not None:
-            print("note.orig_pitch: ", note.orig_pitch)
+            # print("note.orig_pitch: ", note.orig_pitch)
             note.pitch = note.orig_pitch
             note.duration = note.orig_dur
 
+    # cv.imshow('8th flag', r_flag8d)
+    # cv.waitKey(0)
+    #
+    # k = np.ones((2, 2), np.uint8)
+    # r_flag8u = cv.morphologyEx(r_flag8u, cv.MORPH_CLOSE, k)
+    # r_flag8d = cv.morphologyEx(r_flag8d, cv.MORPH_CLOSE, k)
+    #
+    # cv.imshow('8th flag, morphed', r_flag8d)
+    # cv.waitKey(0)
 
-    # for note in notes:
-    #     if note.y_val is not None:
-    #         if note.orig_dur == quarter_dur:
-    #             crop = img[:, note.x_val:note.x_val + width]
-    #             F8U = cv.matchTemplate(crop, r_flag8u, cv.TM_CCOEFF_NORMED)
-    #             F8D = cv.matchTemplate(crop, r_flag8d, cv.TM_CCOEFF_NORMED)
-    #             F16U = cv.matchTemplate(crop, r_flag16u, cv.TM_CCOEFF_NORMED)
-    #             F16D = cv.matchTemplate(crop, r_flag16d, cv.TM_CCOEFF_NORMED)
+    for note in notes:
+        if note.y_val is not None:
+            if note.orig_dur == quarter_dur:
+                crop = img[:, note.x_val - 1:note.x_val + width + staff.dis]
+                cv.imshow("flag crop", crop)
+                cv.waitKey(0)
+                F8U = cv.matchTemplate(crop, r_flag8u, cv.TM_CCOEFF_NORMED)
+                F8D = cv.matchTemplate(crop, r_flag8d, cv.TM_CCOEFF_NORMED)
+                F16U = cv.matchTemplate(crop, r_flag16u, cv.TM_CCOEFF_NORMED)
+                F16D = cv.matchTemplate(crop, r_flag16d, cv.TM_CCOEFF_NORMED)
 
 
-                # flagThresh = 0.8
-                # f8uMatch = np.where(F8U > flagThresh)
-                # f8dMatch = np.where(F8D > flagThresh)
-                # f16uMatch = np.where(F16U > flagThresh)
-                # f16dMatch = np.where(F16D > flagThresh)
+                flagThresh = 0.6
+                f8uMatch = np.where(F8U >= flagThresh)
+                f8dMatch = np.where(F8D >= flagThresh)
+                f16uMatch = np.where(F16U >= flagThresh)
+                f16dMatch = np.where(F16D >= flagThresh)
+
+                f8uMatch = np.asarray(f8uMatch)
+                f8dMatch = np.asarray(f8dMatch)
+                f16uMatch = np.asarray(f16uMatch)
+                f16dMatch = np.asarray(f16dMatch)
+
+                # print("f8uMatch: ", f8uMatch)
                 #
-                # if f8uMatch is not None:
-                #     note.duration = note.orig_dur * 1.5
-                #     print("found 8th flag, up")
+                # print("len(f8uMatch): ", len(f8uMatch))
+                if f8uMatch.shape[1] != 0:
+                    note.duration = note.orig_dur / 2
+                    print("found 8th flag, up")
+
+                # print("f8dMatch: ", f8dMatch)
+                # print("f8dMatch.shape[1]: ", f8dMatch.shape[1])
+                # print("len(f8dMatch): ", len(f8dMatch))
+                if f8dMatch.shape[1] != 0:
+                    note.duration = note.orig_dur / 2
+                    print("found 8th flag, down")
+
+                if f16uMatch.shape[1] != 0:
+                    note.duration = note.orig_dur / 4
+                    print("found 16th flag, up")
+
+                if f16dMatch.shape[1] != 0:
+                    note.duration = note.orig_dur / 4
+                    print("found 16th flag, down")
+
+
 
                 #
                 # f8uMatch = np.asarray(f8uMatch)
