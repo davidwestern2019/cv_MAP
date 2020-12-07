@@ -23,7 +23,7 @@ def removeLines(img, staves):
             bottom = int(line[1])
             help_reduce_chop = 1
             # print(top, bottom)
-            for col in range(0, width):                                                         
+            for col in range(0, width):
                 # count = 0
                 # topLeft = False
                 # topRight = False
@@ -82,8 +82,6 @@ def removeLines(img, staves):
                 #     print("\t \t Boolean value is: ", no_pieces_of_notes_nearby)
                 if image[top-1, col] != 0 and image[bottom+1, col] != 0: # and no_pieces_of_notes_nearby:
                     image[top:bottom, col] = 255
-                    if top == 462 and col == 42:
-                        print("\t \t pixel removed")
 
     return image
 
