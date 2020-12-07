@@ -14,12 +14,20 @@ import createMIDI
 
 def main():
     # Use this to use a piece of sample music
-    file_name = "example_music_7.jpg"
+    file_name = "snip.png"
     orig_img = cv.imread(file_name, cv.IMREAD_GRAYSCALE)
     _, test_img = cv.threshold(orig_img, 180, 255, cv.THRESH_BINARY)
     # imma try some shit here
+    # cv.imshow("test_img", test_img)
+    # 0.35
+    scale = 0.5
+    img_w = round(orig_img.shape[1] * scale)
+    img_h = round(orig_img.shape[0] * scale)
+    dim = (img_w, img_h)
+    orig_img = cv.resize(orig_img, dim, interpolation=cv.INTER_AREA)
+    _, test_img = cv.threshold(orig_img, 180, 255, cv.THRESH_BINARY)
     cv.imshow("test_img", test_img)
-
+    cv.waitKey(0)
     # create window to look at test image and click on pixels for verification purposes
     # picked_point = []
     # pick_window = "Test Image"

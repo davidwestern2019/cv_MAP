@@ -46,7 +46,7 @@ def lineLoc(i, staff):
 
 
 def staffCrop(staff, image):
-    cv.imshow("image", image)
+    cv.imshow("staffless", image)
     cv.waitKey(0)
     staff.l1 = lineLoc(0, staff)
     staff.l2 = lineLoc(1, staff)
@@ -380,17 +380,25 @@ def noteDetect(staff, img):
     # cv.imshow('8th flag, morphed', r_flag8d)
     # cv.waitKey(0)
 
+    # cv.imshow('16th flag down', r_flag16d)
+    # cv.waitKey(0)
+
+    img_copy = img.copy()
+
     for note in notes:
         if note.y_val is not None:
             if note.orig_dur == quarter_dur:
-                crop = img[:, note.x_val - 1:note.x_val + width + staff.dis]
-                cv.imshow("flag crop", crop)
-                cv.waitKey(0)
+                crop = img_copy[:, note.x_val - 1:note.x_val + width + staff.dis]
+                y_range = range(note.y_val, note.y_val + height)
+                x_range = range(note.x_val - 1, note.x_val + width + staff.dis)
+                for i in y_range:
+                    crop[i] = 255
+                # cv.imshow("flag crop", crop)
+                # cv.waitKey(0)
                 F8U = cv.matchTemplate(crop, r_flag8u, cv.TM_CCOEFF_NORMED)
                 F8D = cv.matchTemplate(crop, r_flag8d, cv.TM_CCOEFF_NORMED)
                 F16U = cv.matchTemplate(crop, r_flag16u, cv.TM_CCOEFF_NORMED)
                 F16D = cv.matchTemplate(crop, r_flag16d, cv.TM_CCOEFF_NORMED)
-
 
                 flagThresh = 0.6
                 f8uMatch = np.where(F8U >= flagThresh)
@@ -403,16 +411,10 @@ def noteDetect(staff, img):
                 f16uMatch = np.asarray(f16uMatch)
                 f16dMatch = np.asarray(f16dMatch)
 
-                # print("f8uMatch: ", f8uMatch)
-                #
-                # print("len(f8uMatch): ", len(f8uMatch))
                 if f8uMatch.shape[1] != 0:
                     note.duration = note.orig_dur / 2
                     print("found 8th flag, up")
 
-                # print("f8dMatch: ", f8dMatch)
-                # print("f8dMatch.shape[1]: ", f8dMatch.shape[1])
-                # print("len(f8dMatch): ", len(f8dMatch))
                 if f8dMatch.shape[1] != 0:
                     note.duration = note.orig_dur / 2
                     print("found 8th flag, down")
@@ -424,8 +426,6 @@ def noteDetect(staff, img):
                 if f16dMatch.shape[1] != 0:
                     note.duration = note.orig_dur / 4
                     print("found 16th flag, down")
-
-
 
                 #
                 # f8uMatch = np.asarray(f8uMatch)
@@ -440,18 +440,27 @@ def noteDetect(staff, img):
 
 
 
-    # LCropDist = 2 * staff.dis
-    # RCropDist = 3 * staff.dis
-    # TCropDist = 0
-    # BCropDist = staff.dis
+    LCropDist = 2 * staff.dis
+    RCropDist = 3 * staff.dis
+    TCropDist = 0
+    BCropDist = staff.dis
 
-    # for note in notes:
-    #     if note.y_val is not None:
-    #         cv.rectangle(img, (note.y_val + TCropDist, note.x_val + LCropDist), (note.y_val + BCropDist, note.x_val + RCropDist), 'black')
-    #
-    # cv.imshow(img)
+    # cv.imshow('pre rectangles', img)
     # cv.waitKey(0)
 
+    img_copy2 = img.copy()
+
+    print('d', d)
+
+    for note in notes:
+        if note.y_val is not None:
+            crop = img_copy2[round(note.y_val - 2 * d):round(note.y_val + 3 * d), round(note.x_val + width):round(note.x_val + width + 4 * d)]
+            # cv.imshow('dot crop', crop)
+            # cv.waitKey(0)
+            # cv.rectangle(img, (note.y_val + TCropDist, note.x_val + LCropDist), (note.y_val + BCropDist, note.x_val + RCropDist), (0, 0, 255))
+
+    # cv.imshow('rectangles for dots', img)
+    # cv.waitKey(0)
 
     # for note in notes:
     #     crop = img[:, note.x_val - LCropDist:note.x_val + RCropDist]
