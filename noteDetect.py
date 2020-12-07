@@ -444,7 +444,7 @@ def noteDetect(staff, img):
     staff.notes = []
     staff.notes = notes
 
-    return staff, img
+    return staff, img, height, width
 
 
 def main():

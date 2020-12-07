@@ -51,7 +51,7 @@ def main():
 
     for i in range(len(staves)):
         cropped_image = noteDetect.staffCrop(staves[i], image_no_staff)
-        staves[i], image_note_detect = noteDetect.noteDetect(staves[i], cropped_image)
+        staves[i], image_note_detect, height, width = noteDetect.noteDetect(staves[i], cropped_image)
 
         # find accidentals
 
