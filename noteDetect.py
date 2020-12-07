@@ -61,10 +61,22 @@ def staffCrop(staff, image):
     elif staff.staff_end + 6 * staff.dis > image.shape[0]:
         print("cut end")
         img = image[staff.staff_start - 6 * staff.dis:image.shape[0], :]
+        start = staff.staff_start - 6 * staff.dis
+        staff.l1 = staff.l1 - start
+        staff.l2 = staff.l2 - start
+        staff.l3 = staff.l3 - start
+        staff.l4 = staff.l4 - start
+        staff.l5 = staff.l5 - start
 
     else:
         print("not cut")
         img = image[staff.staff_start - 6 * staff.dis:staff.staff_end + 6 * staff.dis, :]
+        start = staff.staff_start - 6 * staff.dis
+        staff.l1 = staff.l1 - start
+        staff.l2 = staff.l2 - start
+        staff.l3 = staff.l3 - start
+        staff.l4 = staff.l4 - start
+        staff.l5 = staff.l5 - start
 
     cv.imshow("staff crop", img)
     cv.waitKey(0)
@@ -83,6 +95,11 @@ def noteDetect(staff, img):
     halfTemplate = cv.imread('half_head.png', cv.IMREAD_GRAYSCALE)
     wholeTemplate = cv.imread('whole_head.png', cv.IMREAD_GRAYSCALE)
     wholeTemplateL = cv.imread('whole_head_line.png', cv.IMREAD_GRAYSCALE)
+
+    flag8d = cv.imread('f8thD.png', cv.IMREAD_GRAYSCALE)
+    flag8u = cv.imread('f8thU.png', cv.IMREAD_GRAYSCALE)
+    flag16d = cv.imread('f16thD.png', cv.IMREAD_GRAYSCALE)
+    flag16u = cv.imread('f16thU.png', cv.IMREAD_GRAYSCALE)
 
     quarterRestTemplate = cv.imread('quarter_rest.png', cv.IMREAD_GRAYSCALE)
     eighthRestTemplate = cv.imread('eighth_rest.png', cv.IMREAD_GRAYSCALE)
@@ -112,6 +129,11 @@ def noteDetect(staff, img):
     r_half = cv.resize(halfTemplate, dim, interpolation=cv.INTER_AREA)
     r_whole = cv.resize(wholeTemplate, wdim, interpolation=cv.INTER_AREA)
     r_wholeL = cv.resize(wholeTemplateL, wdim, interpolation=cv.INTER_AREA)
+
+    r_flag8u = resizeTemplate(scale, flag8u)
+    r_flag8d = resizeTemplate(scale, flag8d)
+    r_flag16u = resizeTemplate(scale, flag16u)
+    r_flag16d = resizeTemplate(scale, flag16d)
 
     r_quarterRest = resizeTemplate(scale, quarterRestTemplate)
     r_eighthRest = resizeTemplate(scale, eighthRestTemplate)
@@ -289,9 +311,6 @@ def noteDetect(staff, img):
 
     notes.sort(key=operator.attrgetter('x_val'))
 
-    LCropDist = 2 * staff.dis
-    RCropDist = 4 * staff.dis
-
     img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
     # cv.imshow('dot', r_dot)
     # cv.waitKey(0)
@@ -348,11 +367,53 @@ def noteDetect(staff, img):
 
     for note in notes:
         if note.y_val is not None:
-            print(note.orig_pitch)
+            print("note.orig_pitch: ", note.orig_pitch)
             note.pitch = note.orig_pitch
 
     # for note in notes:
     #     if note.y_val is not None:
+    #         if note.orig_dur == quarter_dur:
+    #             crop = img[:, note.x_val:note.x_val + width]
+    #             F8U = cv.matchTemplate(crop, r_flag8u, cv.TM_CCOEFF_NORMED)
+    #             F8D = cv.matchTemplate(crop, r_flag8d, cv.TM_CCOEFF_NORMED)
+    #             F16U = cv.matchTemplate(crop, r_flag16u, cv.TM_CCOEFF_NORMED)
+    #             F16D = cv.matchTemplate(crop, r_flag16d, cv.TM_CCOEFF_NORMED)
+
+
+                # flagThresh = 0.8
+                # f8uMatch = np.where(F8U > flagThresh)
+                # f8dMatch = np.where(F8D > flagThresh)
+                # f16uMatch = np.where(F16U > flagThresh)
+                # f16dMatch = np.where(F16D > flagThresh)
+                #
+                # if f8uMatch is not None:
+                #     note.duration = note.orig_dur * 1.5
+                #     print("found 8th flag, up")
+
+                #
+                # f8uMatch = np.asarray(f8uMatch)
+                # f8dMatch = np.asarray(f8dMatch)
+                # f16uMatch = np.asarray(f16uMatch)
+                # f16dMatch = np.asarray(f16dMatch)
+                #
+                # f8uMatch = remove_dupes(f8uMatch, width, height)
+                # f8dMatch = remove_dupes(f8dMatch, width, height)
+                # f16uMatch = remove_dupes(f16uMatch, width, height)
+                # f16dMatch = remove_dupes(f16dMatch, width, height)
+
+
+
+    # LCropDist = 2 * staff.dis
+    # RCropDist = 3 * staff.dis
+    # TCropDist = 0
+    # BCropDist = staff.dis
+
+    # for note in notes:
+    #     if note.y_val is not None:
+    #         cv.rectangle(img, (note.y_val + TCropDist, note.x_val + LCropDist), (note.y_val + BCropDist, note.x_val + RCropDist), 'black')
+    #
+    # cv.imshow(img)
+    # cv.waitKey(0)
 
 
     # for note in notes:
@@ -395,7 +456,8 @@ def noteDetect(staff, img):
 
     # if connected components covers more than one x_val in notesclass
 
-    staff.notes.append(notes)
+    staff.notes = []
+    staff.notes = notes
 
     return staff, img
 
