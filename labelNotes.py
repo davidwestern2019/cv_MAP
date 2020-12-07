@@ -14,21 +14,25 @@ def labelNotes(image, staves):
 
     # Parameters
     #   adjust the following parameters to get desirable labeling
-    font_scale = 1
-    font = cv.FONT_HERSHEY_SIMPLEX
+    font = cv.LINE_AA
     color_text = (0, 0, 0)
 
     # go to each staff
     for staff in staves:
+        print("Staff number is: ", staff.staff_number)
         # go to to each note
         dis = staff.dis
-        vert_coord = staff.staff_end + dis*2
+        vert_coord = staff.staff_end + dis*3    # where the labels go
+        font_scale = dis/10        # scale the font
+        print("Staff ends at: ", vert_coord)
+        print("There are ", len(staff.notes), " notes/rests in this staff.")
         for note in staff.notes:
+            print("Note pitch is: ", note.pitch)
             if note.pitch is not None:
                 col = note.x_val
                 letter = utilities_cv.midiNum2Letter(note.pitch, accidental=note.accidental)
-                print(letter)
-                cv.putText(image, letter, (col, vert_coord), font, font_scale, color_text, thickness=2)
+                cv.putText(image, letter, (col, vert_coord), font, font_scale, color_text, thickness=1)
+                image = image
 
     return image
 
