@@ -24,7 +24,6 @@ def labelNotes(image, staves):
         dis = staff.dis
         vert_coord = staff.staff_end + dis*3    # where the labels go
         font_scale = dis/10        # scale the font
-        tuning_col = 3              # tuning parameter to make the letters directly under the note head
         print("Staff ends at: ", vert_coord)
         print("There are ", len(staff.notes), " notes/rests in this staff.")
         for note in staff.notes:
@@ -32,7 +31,7 @@ def labelNotes(image, staves):
             if note.pitch is not None:
                 col = note.x_val
                 letter = utilities_cv.midiNum2Letter(note.pitch, accidental=note.accidental)
-                cv.putText(image, letter, (col-tuning_col, vert_coord), font, font_scale, color_text, thickness=1)
+                cv.putText(image, letter, (col, vert_coord), font, font_scale, color_text, thickness=1)
                 image = image
 
     return image
