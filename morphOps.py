@@ -23,7 +23,7 @@ def performStaffOps(img, dis):
     # erode with horizontal block
     # find the length of the stafflines with horizontal projections
     _, staffline_lengths = horizontal_projection.horizontal_projection_calc(img_dil, start_row=0, end_row=img_height)
-    block_width_erod = int(max(staffline_lengths)*0.8)
+    block_width_erod = int(max(staffline_lengths)*0.5)
     # print("Staffline lengths: ", staffline_lengths)
     #print('Image width is: ', img_width)
     block_height_erod = dis

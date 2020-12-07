@@ -62,7 +62,7 @@ def detectBeams(staff, img_slice_of_staff, black_head_template_height, black_hea
                 note2.duration = 1/2
                 staff.notes[i] = note1
                 staff.notes[i+1] = note2
-                print("Note ", i, " is an eighth note")
+                print("Note ", i, " and ", i+1, " are eighth notes")
 
     return staff
     # end of detectBeams
