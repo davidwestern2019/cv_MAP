@@ -51,13 +51,18 @@ def horizontal_projection_calc(img, start_row, end_row, binSize=1, peaks=5):
     # print((end_row-start_row)*width)
     assert (pixel_check == (end_row-start_row)*width), "Error! Not every pixel was counted"
 
-    # find locations of peaks and their heights. This is equivalent to finding the staffline locations and the length
-    # of the staff lines
-    # peaks = 5 # was a default value. now its a possible
-    peakLocations, peakHeights = findTopPeaks(count_for_each_row, peaks)
-    peakLocations *= binSize
-    peakLocations += start_row
-    return peakLocations, peakHeights
+    # if need to find the largest peaks/responses, then use this.
+    if peaks > 0:
+        # find locations of peaks and their heights. This is equivalent to finding the staffline locations and the length
+        # of the staff lines
+        # peaks = 5 # was a default value. now its a possible
+        peakLocations, peakHeights = findTopPeaks(count_for_each_row, peaks)
+        peakLocations *= binSize
+        peakLocations += start_row
+        return peakLocations, peakHeights
+    else:
+        # New method of staff line detection. Use the black pixel count for each row
+        return count_for_each_row
 
 
 def adjustBounds(start, end, dividend, max_end_value):
