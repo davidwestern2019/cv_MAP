@@ -63,7 +63,7 @@ def main():
 
     # label the images
     label_image = labelNotes.labelNotes(orig_img, staves)
-    cv.imshow("Test Image", label_image)
+    cv.imshow("Labeled Image", label_image)
     cv.waitKey(0)
 
 
