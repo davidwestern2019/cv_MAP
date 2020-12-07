@@ -144,7 +144,7 @@ def noteDetect(staff, img):
     r_flat = resizeTemplate(scale, flatTemplate)
     r_natural = resizeTemplate(scale, naturalTemplate)
 
-    r_dot = resizeTemplate(scale, dotTemplate)
+    r_dot = resizeTemplate(scale * 2, dotTemplate)
     r_accent = resizeTemplate(scale, accentTemplate)
 
     # cv.imshow("resized filled", r_filled)
@@ -154,7 +154,7 @@ def noteDetect(staff, img):
     # cv.waitKey(0)
 
 
-
+    # MORPH FOR QUARTER REST
     k = np.ones((1, 2), np.uint8)
     r_quarterRest = cv.morphologyEx(r_quarterRest, cv.MORPH_CLOSE, k)
     # cv.imshow("morphed quarter rest", r_quarterRest)
@@ -186,8 +186,8 @@ def noteDetect(staff, img):
     hMatch = np.where(H >= 0.5)
     wMatch = np.where(W >= 0.7)
     wMatchL = np.where(WL >= 0.7)
-
-    qrMatch = np.where(QR >= 0.58)
+    # 0.58
+    qrMatch = np.where(QR >= 0.55)
     erMatch = np.where(ER >= 0.65)
     srMatch = np.where(SR >= 0.65)
     hrMatch = np.where(HR >= 0.8)
@@ -209,6 +209,19 @@ def noteDetect(staff, img):
     erMatch = remove_dupes(erMatch, width, height)
     srMatch = remove_dupes(srMatch, width, height)
     hrMatch = remove_dupes(hrMatch, width, height)
+
+    # removing quarter rests out of y-bounds
+    qrMatch = np.transpose(qrMatch)
+    qr_y_thresh = 5
+    i = 0
+    while i < len(qrMatch):
+        if len(qrMatch) != 0:
+            if abs(qrMatch[i, 0] + (r_quarterRest.shape[0] / 2) - staff.l3) > qr_y_thresh:
+                qrMatch = np.delete(qrMatch, i, 0)
+                print("deleted quarter rest out of y-bounds")
+                i = i - 1
+        i = i + 1
+    qrMatch = np.transpose(qrMatch)
 
     box_img = cv.cvtColor(img, cv.COLOR_GRAY2BGR)
 
@@ -268,12 +281,12 @@ def noteDetect(staff, img):
     # while loops used here as to prevent indexing errors when iterating through matrix which is being reduced
     i = 0
     while i < len(qrMatch):
-            for note in notes:
-                if len(qrMatch) != 0:
-                    if abs(qrMatch[i, 1] - note.x_val) < width:
-                        qrMatch = np.delete(qrMatch, i, 0)
-                        i = i - 1
-            i = i + 1
+        for note in notes:
+            if len(qrMatch) != 0:
+                if abs(qrMatch[i, 1] - note.x_val) < width:
+                    qrMatch = np.delete(qrMatch, i, 0)
+                    i = i - 1
+        i = i + 1
 
     print("post process qrMatch: ", qrMatch)
 
@@ -310,9 +323,6 @@ def noteDetect(staff, img):
     # print("qrMatch post process: ", qrMatch)
 
     notes.sort(key=operator.attrgetter('x_val'))
-
-      # cv.imshow('dot', r_dot)
-    # cv.waitKey(0)
 
     d = staff.dis / 4
 
@@ -450,16 +460,20 @@ def noteDetect(staff, img):
 
     img_copy2 = img.copy()
 
-    print('d', d)
-
     for note in notes:
         if note.y_val is not None:
-            crop = img_copy2[round(note.y_val - 2 * d):round(note.y_val + 3 * d), round(note.x_val + width):round(note.x_val + width + 4 * d)]
-            # cv.imshow('dot crop', crop)
-            # cv.waitKey(0)
-            # cv.rectangle(img, (note.y_val + TCropDist, note.x_val + LCropDist), (note.y_val + BCropDist, note.x_val + RCropDist), (0, 0, 255))
+            crop = img_copy2[round(note.y_val - d):round(note.y_val + 5 * d), round(note.x_val + width + d):round(note.x_val + width + 4 * d)]
+            cv.imshow('dot crop', crop)
+            cv.waitKey(0)
+            DOT = cv.matchTemplate(crop, r_dot, cv.TM_CCOEFF_NORMED)
+            dotMatch = np.where(DOT >= 0.7)
+            dotMatch = np.asarray(dotMatch)
+            print("dotMatch: ", dotMatch)
+            print("len(dotMatch): ", len(dotMatch))
+            print("dotMatch.shape: ", dotMatch.shape)
+            # cv.rectangle(img_copy2, (note.y_val + TCropDist, note.x_val + LCropDist), (note.y_val + BCropDist, note.x_val + RCropDist), (0, 0, 255), 1)
 
-    # cv.imshow('rectangles for dots', img)
+    # cv.imshow('rectangles for dots', img_copy2)
     # cv.waitKey(0)
 
     # for note in notes:
