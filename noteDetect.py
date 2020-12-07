@@ -375,6 +375,7 @@ def noteDetect(staff, img):
             if staff.l5 + 4 * d <= note.y_val <= staff.l5 + 5 * d:
                 note.orig_pitch = 57
 
+    # fix staff lines
     staff.l1 = staff.l1 + h
     staff.l2 = staff.l2 + h
     staff.l3 = staff.l3 + h
