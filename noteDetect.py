@@ -184,7 +184,8 @@ def noteDetect(staff, img):
     #thresh =
     fMatch = np.where(F >= 0.6)
     hMatch = np.where(H >= 0.5)
-    wMatch = np.where(W >= 0.7)
+    # 0.7
+    wMatch = np.where(W >= 0.65)
     wMatchL = np.where(WL >= 0.7)
     # 0.58
     qrMatch = np.where(QR >= 0.55)
@@ -373,6 +374,12 @@ def noteDetect(staff, img):
                 note.orig_pitch = 59
             if staff.l5 + 4 * d <= note.y_val <= staff.l5 + 5 * d:
                 note.orig_pitch = 57
+
+    staff.l1 = staff.l1 + h
+    staff.l2 = staff.l2 + h
+    staff.l3 = staff.l3 + h
+    staff.l4 = staff.l4 + h
+    staff.l5 = staff.l5 + h
 
     for note in notes:
         if note.y_val is not None:
