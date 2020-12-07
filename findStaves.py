@@ -28,34 +28,24 @@ def findStaves(image):
     # print("Found staves. Adding line thickness and spacing...")
 
     # add parameters to each staff object
-    median_staffline_length_list = []
-    extra_bins_for_varying_line_thickness = 9
+    # extra_bins_for_varying_line_thickness = 7       # use for old method of finding staff lines
+    bin_size = 1  # look at every row
     for staff in staves:
         # print("Doing staff ", staff.staff_number)
         staff.dis = staffline_spacing
         # print("Thickness is: ", staffline_thickness)
         # print("Start: ", staff.staff_start, ", End: ", staff.staff_end)
-        line_start_locations, line_lengths = horizontal_projection.horizontal_projection_calc(image,
-                                                                                              staff.staff_start,
-                                                                                              staff.staff_end,
-                                                                                              binSize=staffline_thickness,
-                                                                                              peaks=extra_bins_for_varying_line_thickness)
-
-        staff.line_length = int(max(line_lengths) / staffline_thickness)  # use max value of the various line lengths
-
-        # use a median staffline length to counteract scenario where horizontal_proj bin doesn't start on line
-        median_staffline_length_list.append(staff.line_length)
+        line_start_locations = horizontal_projection.horizontal_projection_calc(image,
+                                                                                   staff.staff_start,
+                                                                                   staff.staff_end,
+                                                                                   binSize=bin_size,
+                                                                                   peaks=0)
 
         # clean up the staff line locations. fix lines that should be connected together
         # print(line_start_locations)
-        staff.line_locations = improveStaffLocations(line_start_locations, staffline_thickness, line_lengths)
+        # staff.line_locations = improveStaffLocations(line_start_locations, staffline_thickness, line_lengths)
+        staff.line_locations = stitchLinesTogether(line_start_locations, staff)
         # print(staff.line_locations)
-
-    # perform corrections to avoid falsely reported short line
-    median_staffline_length = statistics.median(median_staffline_length_list)
-    for staff in staves:
-        if staff.line_length < 0.8 * median_staffline_length:
-            staff.line_length = median_staffline_length
 
     # just to check to make sure that the objects are getting the right methods
     # for staff in staves:
@@ -69,6 +59,10 @@ def findStaves(image):
 
 
 def improveStaffLocations(start_line_locations, staffline_thickness, line_lengths):
+    # ------------------------------------------------------------------------
+    # WARNING DO NOT USE THIS FUNCTION ANYMORE. IT IS DEPRECATED
+    # ------------------------------------------------------------------------
+    assert (1 == 0), "DO NOT USE THIS FUNCTION ANYMORE"
     list_of_staff_locations = []  # this list is sorted by largest lines first
     start_position_sorted_list = np.sort(start_line_locations, axis=None)
     position_sorted_list = []
@@ -127,6 +121,48 @@ def improveStaffLocations(start_line_locations, staffline_thickness, line_length
         five_staff_locations.append(list_of_staff_locations[i])
 
     five_staff_locations = sorted(five_staff_locations, key=operator.itemgetter(0))
+
+    return five_staff_locations
+
+def stitchLinesTogether(possible_line_locations, staff):
+    staff_width = staff.line_length
+    start = staff.staff_start
+    line_locations = []
+    wiggle_room = 0.95
+
+    # put lines together if they are touching
+    is_line = False
+    new_line_start = 0
+    for i in range(0, len(possible_line_locations)):
+        # print("Staffline ", i+start, " has a count of ", possible_line_locations[i] )
+        if possible_line_locations[i] > staff_width * wiggle_room:
+            # Have found a line. It is either:
+            #   1. start of new line
+            #   2. continuation of line
+            if not is_line:
+                # 1. Start of a new line
+                # print("\t Found start at ", i+start)
+                new_line_start = i
+                is_line = True
+
+        else:
+            # Have found a not line. It is either end of a line or other
+            if is_line:
+                # terminate line and add location tuple to list
+                # print("\t Found end at ", i+start)
+                new_line_end = i
+                location = (new_line_start + start, new_line_end + start)
+                line_locations.append(location)
+                is_line = False
+
+
+    # Check for more than 5 lines.
+    five_staff_locations = None
+    if len(line_locations) < 6:
+        five_staff_locations = line_locations
+    else:
+        print("UH-OH. There are more than 5 staff lines!")
+        fiv_staff_locations = None
 
     return five_staff_locations
 
@@ -197,6 +233,10 @@ def find_staff_locations(img, print_Flag=False):
                 if img[row, col] == 0:
                     black_pixel_count += 1  # increase tally of black pixels
             # end of for loop
+
+            # if not an entirely white row, find width of staff
+            if black_pixel_count != 0:
+                list_of_staves[num_staves - 1].line_length = black_pixel_count
 
             # end of staff when a white row is found
             if black_pixel_count == 0:
