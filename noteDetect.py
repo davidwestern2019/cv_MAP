@@ -4,6 +4,46 @@ import utilities_cv
 import operator
 
 
+def getPitchValue(staff, value):
+    d = staff.dis / 4
+    if staff.l1 - 9 * d <= value <= staff.l1 - 7 * d:
+        pitch = 84
+    if staff.l1 - 7 * d <= value <= staff.l1 - 5 * d:
+        pitch = 83
+    if staff.l1 - 5 * d <= value <= staff.l1 - 3 * d:
+        pitch = 81
+    if staff.l1 - 3 * d <= value <= staff.l1 - d:
+        pitch = 79
+    if staff.l1 - d <= value <= staff.l1 + d:
+        pitch = 77
+    if staff.l1 + d <= value <= staff.l2 - d:
+        pitch = 76
+    if staff.l2 - d <= value <= staff.l2 + d:
+        pitch = 74
+    if staff.l2 + d <= value <= staff.l3 - d:
+        pitch = 72
+    if staff.l3 - d <= value <= staff.l3 + d:
+        pitch = 71
+    if staff.l3 + d <= value <= staff.l4 - d:
+        pitch = 69
+    if staff.l4 - d <= value <= staff.l4 + d:
+        pitch = 67
+    if staff.l4 + d <= value <= staff.l5 - d:
+        pitch = 65
+    if staff.l5 - d <= value <= staff.l5 + d:
+        pitch = 64
+    if staff.l5 + d <= value <= staff.l5 + 3 * d:
+        pitch = 62
+    if staff.l5 + 3 * d <= value <= staff.l5 + 5 * d:
+        pitch = 60
+    if staff.l5 + 5 * d <= value <= staff.l5 + 7 * d:
+        pitch = 59
+    if staff.l5 + 7 * d <= value <= staff.l5 + 9 * d:
+        pitch = 57
+
+    return pitch
+
+
 def remove_dupes(match, width, height):
     # while loops used here as to prevent indexing errors when iterating through matrix which is being reduced
     i = 0
@@ -113,6 +153,8 @@ def noteDetect(staff, img):
     dotTemplate = cv.imread('dot.png', cv.IMREAD_GRAYSCALE)
     accentTemplate = cv.imread('accent.png', cv.IMREAD_GRAYSCALE)
 
+    tClefTemplate = cv.imread('treble_clef.png', cv.IMREAD_GRAYSCALE)
+
     scale = (staff.dis + 3) / filledTemplate.shape[0]
 
     width = int(filledTemplate.shape[1] * scale)
@@ -140,19 +182,14 @@ def noteDetect(staff, img):
     r_sixteenthRest = resizeTemplate(scale, sixteenthRestTemplate)
     r_halfRest = resizeTemplate(scale, halfRestTemplate)
 
-    r_sharp = resizeTemplate(scale, sharpTemplate)
+    r_sharp = resizeTemplate(scale * 1.25, sharpTemplate)
     r_flat = resizeTemplate(scale, flatTemplate)
     r_natural = resizeTemplate(scale, naturalTemplate)
 
     r_dot = resizeTemplate(scale * 2, dotTemplate)
     r_accent = resizeTemplate(scale, accentTemplate)
 
-    # cv.imshow("resized filled", r_filled)
-    # cv.waitKey(0)
-    #
-    # cv.imshow("resized quarter rest", r_quarterRest)
-    # cv.waitKey(0)
-
+    r_tclef = resizeTemplate(scale * 2.85, tClefTemplate)
 
     # MORPH FOR QUARTER REST
     k = np.ones((1, 2), np.uint8)
@@ -181,7 +218,9 @@ def noteDetect(staff, img):
 
     HR = cv.matchTemplate(img, r_halfRest, cv.TM_CCOEFF_NORMED)
 
-    #thresh =
+    TC = cv.matchTemplate(img, r_tclef, cv.TM_CCOEFF_NORMED)
+
+    # thresh =
     # 0.6
     fMatch = np.where(F >= 0.7)
     hMatch = np.where(H >= 0.5)
@@ -194,6 +233,8 @@ def noteDetect(staff, img):
     srMatch = np.where(SR >= 0.65)
     hrMatch = np.where(HR >= 0.8)
 
+    tcMatch = np.where(TC >= 0.5)
+
     fMatch = np.asarray(fMatch)
     hMatch = np.asarray(hMatch)
     wMatch = np.asarray(wMatch)
@@ -203,6 +244,8 @@ def noteDetect(staff, img):
     srMatch = np.asarray(srMatch)
     hrMatch = np.asarray(hrMatch)
 
+    tcMatch = np.asarray(tcMatch)
+
     fMatch = remove_dupes(fMatch, width, height)
     hMatch = remove_dupes(hMatch, width, height)
     wMatch = remove_dupes(wMatch, width, height)
@@ -211,6 +254,8 @@ def noteDetect(staff, img):
     erMatch = remove_dupes(erMatch, width, height)
     srMatch = remove_dupes(srMatch, width, height)
     hrMatch = remove_dupes(hrMatch, width, height)
+
+    tcMatch = remove_dupes(tcMatch, width, height)
 
     # removing quarter rests out of y-bounds
     qrMatch = np.transpose(qrMatch)
@@ -240,16 +285,25 @@ def noteDetect(staff, img):
     #     cv.rectangle(box_img, (wMatchL[1, i], wMatchL[0, i]), (wMatchL[1, i] + wwidth, wMatchL[0, i] + temp_y), (255, 0, 0))
 
     for i in range(len(qrMatch[1])):
-        cv.rectangle(box_img, (qrMatch[1, i], qrMatch[0, i]), (qrMatch[1, i] + r_quarterRest.shape[1], qrMatch[0, i] + r_quarterRest.shape[0]), (0, 152, 255)) # orange
+        cv.rectangle(box_img, (qrMatch[1, i], qrMatch[0, i]),
+                     (qrMatch[1, i] + r_quarterRest.shape[1], qrMatch[0, i] + r_quarterRest.shape[0]),
+                     (0, 152, 255))  # orange
 
     for i in range(len(erMatch[1])):
-        cv.rectangle(box_img, (erMatch[1, i], erMatch[0, i]), (erMatch[1, i] + temp_x, erMatch[0, i] + temp_y), (255, 0, 255)) # pink
+        cv.rectangle(box_img, (erMatch[1, i], erMatch[0, i]), (erMatch[1, i] + temp_x, erMatch[0, i] + temp_y),
+                     (255, 0, 255))  # pink
 
     for i in range(len(srMatch[1])):
-        cv.rectangle(box_img, (srMatch[1, i], srMatch[0, i]), (srMatch[1, i] + temp_x, srMatch[0, i] + temp_y), (255, 255, 0)) # turquoise
+        cv.rectangle(box_img, (srMatch[1, i], srMatch[0, i]), (srMatch[1, i] + temp_x, srMatch[0, i] + temp_y),
+                     (255, 255, 0))  # turquoise
 
     for i in range(len(hrMatch[1])):
-        cv.rectangle(box_img, (hrMatch[1, i], hrMatch[0, i]), (hrMatch[1, i] + temp_x, hrMatch[0, i] + temp_y), (0, 255, 135)) # green turquoise
+        cv.rectangle(box_img, (hrMatch[1, i], hrMatch[0, i]), (hrMatch[1, i] + temp_x, hrMatch[0, i] + temp_y),
+                     (0, 255, 135))  # green turquoise
+
+    for i in range(len(tcMatch[1])):
+        cv.rectangle(box_img, (tcMatch[1, i], tcMatch[0, i]),
+                     (tcMatch[1, i] + r_tclef.shape[1], tcMatch[0, i] + r_tclef.shape[0]), (128, 128, 128))  # gray
 
     cv.imshow("img boxed", box_img)
     cv.waitKey(0)
@@ -331,51 +385,52 @@ def noteDetect(staff, img):
     h = height / 2
     hh = 0
 
-    staff.l1 = staff.l1 - h - hh
-    staff.l2 = staff.l2 - h - hh
-    staff.l3 = staff.l3 - h - hh
-    staff.l4 = staff.l4 - h - hh
-    staff.l5 = staff.l5 - h - hh
+    staff.l1 = staff.l1 - h
+    staff.l2 = staff.l2 - h
+    staff.l3 = staff.l3 - h
+    staff.l4 = staff.l4 - h
+    staff.l5 = staff.l5 - h
 
     # print("staff.l1", staff.l1)
 
     for note in notes:
         # print("note.y_val", note.y_val)
         if note.y_val is not None:
-            if staff.l1 - 5 * d <= note.y_val <= staff.l1 - 4 * d:
-                note.orig_pitch = 84
-            if staff.l1 - 4 * d <= note.y_val <= staff.l1 - 3 * d:
-                note.orig_pitch = 83
-            if staff.l1 - 3 * d <= note.y_val <= staff.l1 - 2 * d:
-                note.orig_pitch = 81
-            if staff.l1 - 2 * d <= note.y_val <= staff.l1 - d:
-                note.orig_pitch = 79
-            if staff.l1 - d <= note.y_val <= staff.l1 + d:
-                note.orig_pitch = 77
-            if staff.l1 + d <= note.y_val <= staff.l2 - d:
-                note.orig_pitch = 76
-            if staff.l2 - d <= note.y_val <= staff.l2 + d:
-                note.orig_pitch = 74
-            if staff.l2 + d <= note.y_val <= staff.l3 - d:
-                note.orig_pitch = 72
-            if staff.l3 - d <= note.y_val <= staff.l3 + d:
-                note.orig_pitch = 71
-            if staff.l3 + d <= note.y_val <= staff.l4 - d:
-                note.orig_pitch = 69
-            if staff.l4 - d <= note.y_val <= staff.l4 + d:
-                note.orig_pitch = 67
-            if staff.l4 + d <= note.y_val <= staff.l5 - d:
-                note.orig_pitch = 65
-            if staff.l5 - d <= note.y_val <= staff.l5 + d:
-                note.orig_pitch = 64
-            if staff.l5 + d <= note.y_val <= staff.l5 + 3 * d:
-                note.orig_pitch = 62
-            if staff.l5 + 3 * d <= note.y_val <= staff.l5 + 5 * d:
-                note.orig_pitch = 60
-            if staff.l5 + 5 * d <= note.y_val <= staff.l5 + 7 * d:
-                note.orig_pitch = 59
-            if staff.l5 + 7 * d <= note.y_val <= staff.l5 + 9 * d:
-                note.orig_pitch = 57
+            # if staff.l1 - 5 * d <= note.y_val <= staff.l1 - 4 * d:
+            #     note.orig_pitch = 84
+            # if staff.l1 - 4 * d <= note.y_val <= staff.l1 - 3 * d:
+            #     note.orig_pitch = 83
+            # if staff.l1 - 3 * d <= note.y_val <= staff.l1 - 2 * d:
+            #     note.orig_pitch = 81
+            # if staff.l1 - 2 * d <= note.y_val <= staff.l1 - d:
+            #     note.orig_pitch = 79
+            # if staff.l1 - d <= note.y_val <= staff.l1 + d:
+            #     note.orig_pitch = 77
+            # if staff.l1 + d <= note.y_val <= staff.l2 - d:
+            #     note.orig_pitch = 76
+            # if staff.l2 - d <= note.y_val <= staff.l2 + d:
+            #     note.orig_pitch = 74
+            # if staff.l2 + d <= note.y_val <= staff.l3 - d:
+            #     note.orig_pitch = 72
+            # if staff.l3 - d <= note.y_val <= staff.l3 + d:
+            #     note.orig_pitch = 71
+            # if staff.l3 + d <= note.y_val <= staff.l4 - d:
+            #     note.orig_pitch = 69
+            # if staff.l4 - d <= note.y_val <= staff.l4 + d:
+            #     note.orig_pitch = 67
+            # if staff.l4 + d <= note.y_val <= staff.l5 - d:
+            #     note.orig_pitch = 65
+            # if staff.l5 - d <= note.y_val <= staff.l5 + d:
+            #     note.orig_pitch = 64
+            # if staff.l5 + d <= note.y_val <= staff.l5 + 3 * d:
+            #     note.orig_pitch = 62
+            # if staff.l5 + 3 * d <= note.y_val <= staff.l5 + 5 * d:
+            #     note.orig_pitch = 60
+            # if staff.l5 + 5 * d <= note.y_val <= staff.l5 + 7 * d:
+            #     note.orig_pitch = 59
+            # if staff.l5 + 7 * d <= note.y_val <= staff.l5 + 9 * d:
+            #     note.orig_pitch = 57
+            note.orig_pitch = getPitchValue(staff, note.y_val)
 
     # fix staff lines
     staff.l1 = staff.l1 + h
@@ -439,11 +494,15 @@ def noteDetect(staff, img):
     TCropDist = 0
     BCropDist = staff.dis
 
+    for note in notes:
+        print('note.orig_pitch: ', note.orig_pitch)
+
     img_copy2 = img.copy()
 
     for note in notes:
         if note.y_val is not None:
-            crop = img_copy2[round(note.y_val - d):round(note.y_val + 5 * d), round(note.x_val + width + d):round(note.x_val + width + 4 * d)]
+            crop = img_copy2[round(note.y_val - d):round(note.y_val + 5 * d),
+                   round(note.x_val + width + d):round(note.x_val + width + 4 * d)]
             DOT = cv.matchTemplate(crop, r_dot, cv.TM_CCOEFF_NORMED)
             dotMatch = np.where(DOT >= 0.7)
             dotMatch = np.asarray(dotMatch)
@@ -451,8 +510,62 @@ def noteDetect(staff, img):
                 print("dotted note found")
                 note.duration = note.orig_dur * 1.5
 
+    clefWidth = r_tclef.shape[1]
+    clefStart = tcMatch[1][0]
+    print('clefWidth: ', clefWidth)
+    print('clefStart: ', clefStart)
+    if staff.staff_number == 1:
+        universalFlats = []
+        universalSharps = []
+        crop = img[:, round(clefStart + clefWidth):round(clefStart + 3 * clefWidth)]
+        if notes[0].x_val - 1.5 * width < clefStart + 3 * clefWidth:
+            crop = img[:, clefStart + clefWidth:round(notes[0].x_val - 1.5 * width)]
+
+        FL = cv.matchTemplate(crop, r_flat, cv.TM_CCOEFF_NORMED)
+        SH = cv.matchTemplate(crop, r_sharp, cv.TM_CCOEFF_NORMED)
+        kFlatMatch = np.where(FL >= 0.65)
+        kSharpMatch = np.where(SH >= 0.65)
+        kFlatMatch = np.asarray(kFlatMatch)
+        kSharpMatch = np.asarray(kSharpMatch)
+        kFlatMatch = remove_dupes(kFlatMatch, r_flat.shape[1] / 2, r_flat.shape[0] / 2)
+        kSharpMatch = remove_dupes(kSharpMatch, r_sharp.shape[1] / 2, r_sharp.shape[0] / 2)
+        # print('kFlatMatch: ', kFlatMatch)
+        # print('kSharpMatch: ', kSharpMatch)
+        for i in range(len(kFlatMatch[1])):
+            cv.rectangle(crop, (kFlatMatch[1, i], kFlatMatch[0, i]),
+                         (kFlatMatch[1, i] + r_flat.shape[1], kFlatMatch[0, i] + r_flat.shape[0]), (0, 0, 0))  # gray
+            flat_loc = kFlatMatch[0, i] + r_flat.shape[0] * 3 / 4
+            # print('loc: ', flat_loc)
+            # print('midline: ', staff.l3)
+            universalFlat = getPitchValue(staff, flat_loc)
+            print('universalFlat: ', universalFlat)
+            universalFlats.append(universalFlat)
+        for i in range(len(kSharpMatch[1])):
+            cv.rectangle(crop, (kSharpMatch[1, i], kSharpMatch[0, i]), (kSharpMatch[1, i] + r_sharp.shape[1], kSharpMatch[0, i] + r_sharp.shape[0]), (156, 156, 156))
+            sharp_loc = kSharpMatch[0, i] + r_sharp.shape[0] / 2
+            print('sharp_loc: ', sharp_loc)
+            print('line 1: ', staff.l1)
+            universalSharp = getPitchValue(staff, sharp_loc)
+            print('universalSharp: ', universalSharp)
+            universalSharps.append(universalSharp)
+
+    for note in notes:
+        for flat in universalFlats:
+            if note.pitch == flat:
+                note.pitch = note.pitch - 1
+                note.accidental = 'flat'
+        for sharp in universalSharps:
+            if note.pitch == sharp:
+                note.pitch = note.pitch + 1
+                # do you want a note for accidental here?
+                note.accidental = 'sharp'
+
     staff.notes = []
     staff.notes = notes
+
+    # for note in notes:
+    #     if note.y_val != 0:
+    #
 
     return staff, img, height, width
 
