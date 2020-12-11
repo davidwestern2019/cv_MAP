@@ -118,12 +118,12 @@ def staffCrop(staff, image):
         staff.l4 = staff.l4 - start
         staff.l5 = staff.l5 - start
 
-    cv.imshow("staff crop", img)
-    cv.waitKey(0)
+    # cv.imshow("staff crop", img)
+    # cv.waitKey(0)
     return img
 
 
-def noteDetect(staff, img):
+def noteDetect(staff, img, keyFlats, keySharps):
     print("running noteDetect")
 
     # read in image manually from directory for testing
@@ -515,8 +515,8 @@ def noteDetect(staff, img):
     print('clefWidth: ', clefWidth)
     print('clefStart: ', clefStart)
     if staff.staff_number == 1:
-        universalFlats = []
-        universalSharps = []
+        keyFlats = []
+        keySharps = []
         crop = img[:, round(clefStart + clefWidth):round(clefStart + 3 * clefWidth)]
         if notes[0].x_val - 1.5 * width < clefStart + 3 * clefWidth:
             crop = img[:, clefStart + clefWidth:round(notes[0].x_val - 1.5 * width)]
@@ -539,35 +539,77 @@ def noteDetect(staff, img):
             # print('midline: ', staff.l3)
             universalFlat = getPitchValue(staff, flat_loc)
             print('universalFlat: ', universalFlat)
-            universalFlats.append(universalFlat)
+            keyFlats.append(universalFlat)
         for i in range(len(kSharpMatch[1])):
-            cv.rectangle(crop, (kSharpMatch[1, i], kSharpMatch[0, i]), (kSharpMatch[1, i] + r_sharp.shape[1], kSharpMatch[0, i] + r_sharp.shape[0]), (156, 156, 156))
+            cv.rectangle(crop, (kSharpMatch[1, i], kSharpMatch[0, i]),
+                         (kSharpMatch[1, i] + r_sharp.shape[1], kSharpMatch[0, i] + r_sharp.shape[0]), (156, 156, 156))
             sharp_loc = kSharpMatch[0, i] + r_sharp.shape[0] / 2
             print('sharp_loc: ', sharp_loc)
             print('line 1: ', staff.l1)
             universalSharp = getPitchValue(staff, sharp_loc)
             print('universalSharp: ', universalSharp)
-            universalSharps.append(universalSharp)
+            keySharps.append(universalSharp)
 
     for note in notes:
-        for flat in universalFlats:
-            if note.pitch == flat:
+        if len(keyFlats) != 0:
+            for flat in keyFlats:
+                if note.pitch == flat:
+                    note.pitch = note.pitch - 1
+                    note.accidental = 'flat'
+        if len(keySharps) != 0:
+            for sharp in keySharps:
+                if note.pitch == sharp:
+                    note.pitch = note.pitch + 1
+                    note.accidental = 'sharp'
+
+    accidentalsImgCopy = img.copy()
+
+    # print('natural.shape: ', r_natural.shape)
+    # print('flat.shape: ', r_flat.shape)
+    # print('sharp.shape: ', r_sharp.shape)
+    # cv.imshow('r_natural', r_natural)
+    # cv.waitKey(0)
+    # cv.imshow('r_flat', r_flat)
+    # cv.waitKey(0)
+    # cv.imshow('r_sharp', r_sharp)
+    # cv.waitKey(0)
+
+    for note in notes:
+        if note.y_val is not None:
+            crop = accidentalsImgCopy[round(note.y_val - 1.5 * height):round(note.y_val + 1.5 * height),
+                   round(note.x_val - 2 * staff.dis):round(note.x_val)]
+            # cv.imshow('accidentalsCrop', crop)
+            # cv.waitKey(0)
+            AF = cv.matchTemplate(crop, r_flat, cv.TM_CCOEFF_NORMED)
+            AS = cv.matchTemplate(crop, r_sharp, cv.TM_CCOEFF_NORMED)
+            AN = cv.matchTemplate(crop, r_natural, cv.TM_CCOEFF_NORMED)
+            aFlatMatch = np.where(AF >= 0.65)
+            aSharpMatch = np.where(AS >= 0.65)
+            aNaturalMatch = np.where(AN >= 0.75)
+            aFlatMatch = np.asarray(aFlatMatch)
+            aSharpMatch = np.asarray(aSharpMatch)
+            aNaturalMatch = np.asarray(aNaturalMatch)
+            if aFlatMatch.shape[1] != 0:
+                print('accidental flat')
                 note.pitch = note.pitch - 1
                 note.accidental = 'flat'
-        for sharp in universalSharps:
-            if note.pitch == sharp:
+            if aSharpMatch.shape[1] != 0:
+                print('accidental sharp')
                 note.pitch = note.pitch + 1
-                # do you want a note for accidental here?
                 note.accidental = 'sharp'
+            if aNaturalMatch.shape[1] != 0:
+                print('accidental natural')
+                if note.accidental == 'sharp':
+                    note.pitch = note.pitch - 1
+                    note.accidental = 'natural'
+                if note.accidental == 'flat':
+                    note.pitch = note.pitch + 1
+                    note.accidental = 'natural'
 
     staff.notes = []
     staff.notes = notes
 
-    # for note in notes:
-    #     if note.y_val != 0:
-    #
-
-    return staff, img, height, width
+    return staff, img, height, width, keyFlats, keySharps
 
 
 def main():

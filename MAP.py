@@ -15,7 +15,7 @@ import detectBeams
 
 def main():
     # Use this to use a piece of sample music
-    file_name = "rudolph.PNG"
+    file_name = "all_i_want.PNG"
     orig_img = cv.imread(file_name, cv.IMREAD_GRAYSCALE)
     _, test_img = cv.threshold(orig_img, 180, 255, cv.THRESH_BINARY)
     # imma try some shit here
@@ -48,11 +48,12 @@ def main():
     # cv.imshow("Staves Removes", image_no_staff)
     # cv.waitKey(0)
 
-
+    keyFlats = []
+    keySharps = []
 
     for i in range(len(staves)):
         cropped_image = noteDetect.staffCrop(staves[i], image_no_staff)
-        staves[i], image_note_detect, height, width = noteDetect.noteDetect(staves[i], cropped_image)
+        staves[i], image_note_detect, height, width, keyFlats, keySharps = noteDetect.noteDetect(staves[i], cropped_image, keyFlats, keySharps)
         staves[i] = detectBeams.detectBeams(staves[i], cropped_image, height, width)
         for note in staves[i].notes:
             print("Displaying the note duration values")
@@ -67,20 +68,23 @@ def main():
         #image_note_detect = noteDetect.noteDetect(staves, staff, image_no_staff)
     print("Detected Notes")
 
-    # # create the music file
+    # # create the music file (-3)
     music_file = file_name[:-3]
     createMIDI.createMIDI(staves, music_file)
     #
     # # play the music file
-    music_file += "mid"
+    music_file += ".mid"
     playMIDI.play_music(music_file)
 
     # label the images
-    print("Labeling original image...")
+    print("Annotating original image...")
     label_image = labelNotes.labelNotes(orig_img, staves)
-    cv.imshow("Labeled Image", label_image)
+    cv.imshow("Annotated Image", label_image)
     cv.waitKey(0)
-    print("Labeled image")
+    print("Annotated image")
+    cv.imwrite('Annotated Sheet Music.png', label_image)
+    print("Annotated image saved")
+    print("So long for now!")
 
 
 if __name__ == '__main__':
