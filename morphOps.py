@@ -36,10 +36,13 @@ def performStaffOps(img, dis):
     block_height_dil_1 = 1
     kernel = np.ones((block_height_dil_1, block_width_dil_1), np.uint8)
     img_dil_2 = cv.dilate(img_erode, kernel=kernel)
-    #cv.imshow("2nd Dilation Image", img_dil_2)
+    # cv.imshow("2nd Dilation Image", img_dil_2)
+    # cv.waitKey(0)
 
     # invert image to get back to black text
     img = invertBinaryImage(img_dil_2)
+    # cv.imshow("Morphological Operation", img)
+    # cv.waitKey(0)
     return img
 
 def invertBinaryImage(img):
