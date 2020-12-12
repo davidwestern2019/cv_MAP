@@ -15,7 +15,7 @@ import detectBeams
 
 def main():
     # Use this to use a piece of sample music
-    file_name = "all_i_want.PNG"
+    file_name = "rudolph.PNG"
     orig_img = cv.imread(file_name, cv.IMREAD_GRAYSCALE)
     _, test_img = cv.threshold(orig_img, 180, 255, cv.THRESH_BINARY)
     # imma try some shit here
@@ -35,6 +35,7 @@ def main():
     # cv.namedWindow(pick_window, cv.WINDOW_NORMAL)
     # cv.setMouseCallback(pick_window, utilities_cv.get_xy, picked_point)
     # cv.imshow(pick_window, test_img)
+    # cv.waitKey(0)
 
     # find staves
     staves = findStaves.findStaves(test_img)
@@ -62,10 +63,10 @@ def main():
             keyFlatLetters.append(utilities_cv.midiNum2Letter(flat))
         print("key sharps: ", )
         staves[i] = detectBeams.detectBeams(staves[i], cropped_image, height, width)
-        for note in staves[i].notes:
-            print("Displaying the note duration values")
-            print("\t", note.duration)
-            print("")
+        # for note in staves[i].notes:
+        #     print("Displaying the note duration values")
+        #     print("\t", note.duration)
+        #     print("")
          # find accidentals
 
 
@@ -82,7 +83,7 @@ def main():
     #
     # # play the music file
     music_file += ".mid"
-    # playMIDI.play_music(music_file)
+    playMIDI.play_music(music_file)
 
     # label the images
     print("Annotating original image...")
