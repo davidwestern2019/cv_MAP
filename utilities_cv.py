@@ -12,6 +12,7 @@ class StaffClass:
     l3 = None
     l4 = None
     l5 = None
+    line_dis = None
     staff_number = None     # this represents whether its the 1st, 2nd, 3rd, etc staff encountered when going down the page
     staff_start = None      # pixel/row where the staff begins
     staff_end = None        # pixel/row where the staff ends

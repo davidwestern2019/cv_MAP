@@ -54,6 +54,13 @@ def main():
     for i in range(len(staves)):
         cropped_image = noteDetect.staffCrop(staves[i], image_no_staff)
         staves[i], image_note_detect, height, width, keyFlats, keySharps = noteDetect.noteDetect(staves[i], cropped_image, keyFlats, keySharps)
+        keySharpLetters = []
+        keyFlatLetters = []
+        for sharp in keySharps:
+            keySharpLetters.append(utilities_cv.midiNum2Letter(sharp))
+        for flat in keyFlats:
+            keyFlatLetters.append(utilities_cv.midiNum2Letter(flat))
+        print("key sharps: ", )
         staves[i] = detectBeams.detectBeams(staves[i], cropped_image, height, width)
         for note in staves[i].notes:
             print("Displaying the note duration values")
@@ -68,13 +75,14 @@ def main():
         #image_note_detect = noteDetect.noteDetect(staves, staff, image_no_staff)
     print("Detected Notes")
 
-    # # create the music file (-3)
-    music_file = file_name[:-3]
+    # # create the music file
+    music_file = file_name[:-4]
+    print("music_file: ", music_file)
     createMIDI.createMIDI(staves, music_file)
     #
     # # play the music file
     music_file += ".mid"
-    playMIDI.play_music(music_file)
+    # playMIDI.play_music(music_file)
 
     # label the images
     print("Annotating original image...")
@@ -82,7 +90,8 @@ def main():
     cv.imshow("Annotated Image", label_image)
     cv.waitKey(0)
     print("Annotated image")
-    cv.imwrite('Annotated Sheet Music.png', label_image)
+    annotated_img_name = file_name[:-4] + "_annotated.png"
+    cv.imwrite(annotated_img_name, label_image)
     print("Annotated image saved")
     print("So long for now!")
 

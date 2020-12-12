@@ -5,7 +5,11 @@ import operator
 
 
 def getPitchValue(staff, value):
-    d = staff.dis / 4
+    d = (staff.l5 - staff.l1) / 16
+    # d = staff.dis / 4
+    print("d: ", d)
+    print("staff.dis: ", staff.dis)
+    # pitch = None
     if staff.l1 - 9 * d <= value <= staff.l1 - 7 * d:
         pitch = 84
     if staff.l1 - 7 * d <= value <= staff.l1 - 5 * d:
@@ -40,7 +44,10 @@ def getPitchValue(staff, value):
         pitch = 59
     if staff.l5 + 7 * d <= value <= staff.l5 + 9 * d:
         pitch = 57
-
+    if pitch == None:
+        print("low A location: ", staff.l5 + 7 * d, ' to ', staff.l5 + 9 * d)
+        print("high C location: ", staff.l1 - 9 * d, ' to ', staff.l1 - 7 * d)
+        print("pitch == None. y_val = ", value)
     return pitch
 
 
@@ -63,6 +70,11 @@ def remove_dupes(match, width, height):
             j = j + 1
         i = i + 1
     return match
+
+
+# def processTemplate(temp_name, scale, scale_adjust, thresh, box_img, box_color):
+#     temp_img = cv.imread(temp_name + ".png")
+#     r_temp_img = cv.resize(temp_img, scale)
 
 
 def get_xy(event, x, y, flags, param):
@@ -93,6 +105,7 @@ def staffCrop(staff, image):
     staff.l3 = lineLoc(2, staff)
     staff.l4 = lineLoc(3, staff)
     staff.l5 = lineLoc(4, staff)
+    staff.line_dis = (staff.l5 - staff.l1) / 4
 
     if staff.staff_start - 6 * staff.dis < 0:
         print("cut beginning")
@@ -130,6 +143,8 @@ def noteDetect(staff, img, keyFlats, keySharps):
     # img = cv.imread('example_music_1.jpg')
     # cv.imshow("image read in", img)
     # cv.waitKey(0)
+
+    # _ = processTemplate('filled_head', scale, 1, 0.6, box_img, (0, 0, 0))
 
     filledTemplate = cv.imread('filled_head.png', cv.IMREAD_GRAYSCALE)
     halfTemplate = cv.imread('half_head.png', cv.IMREAD_GRAYSCALE)
@@ -184,7 +199,7 @@ def noteDetect(staff, img, keyFlats, keySharps):
 
     r_sharp = resizeTemplate(scale * 1.25, sharpTemplate)
     r_flat = resizeTemplate(scale, flatTemplate)
-    r_natural = resizeTemplate(scale, naturalTemplate)
+    r_natural = resizeTemplate(scale * 1.5, naturalTemplate)
 
     r_dot = resizeTemplate(scale * 2, dotTemplate)
     r_accent = resizeTemplate(scale, accentTemplate)
@@ -222,7 +237,7 @@ def noteDetect(staff, img, keyFlats, keySharps):
 
     # thresh =
     # 0.6
-    fMatch = np.where(F >= 0.7)
+    fMatch = np.where(F >= 0.69)
     hMatch = np.where(H >= 0.5)
     # 0.7
     wMatch = np.where(W >= 0.65)
@@ -232,8 +247,8 @@ def noteDetect(staff, img, keyFlats, keySharps):
     erMatch = np.where(ER >= 0.65)
     srMatch = np.where(SR >= 0.65)
     hrMatch = np.where(HR >= 0.8)
-
-    tcMatch = np.where(TC >= 0.5)
+    #(0.5)
+    tcMatch = np.where(TC >= 0.4)
 
     fMatch = np.asarray(fMatch)
     hMatch = np.asarray(hMatch)
@@ -300,6 +315,9 @@ def noteDetect(staff, img, keyFlats, keySharps):
     for i in range(len(hrMatch[1])):
         cv.rectangle(box_img, (hrMatch[1, i], hrMatch[0, i]), (hrMatch[1, i] + temp_x, hrMatch[0, i] + temp_y),
                      (0, 255, 135))  # green turquoise
+
+    # cv.imshow('r_tclef: ', r_tclef)
+    # cv.waitKey(0)
 
     for i in range(len(tcMatch[1])):
         cv.rectangle(box_img, (tcMatch[1, i], tcMatch[0, i]),
@@ -502,7 +520,7 @@ def noteDetect(staff, img, keyFlats, keySharps):
     for note in notes:
         if note.y_val is not None:
             crop = img_copy2[round(note.y_val - d):round(note.y_val + 5 * d),
-                   round(note.x_val + width + d):round(note.x_val + width + 4 * d)]
+                             round(note.x_val + width + d):round(note.x_val + width + 4 * d)]
             DOT = cv.matchTemplate(crop, r_dot, cv.TM_CCOEFF_NORMED)
             dotMatch = np.where(DOT >= 0.7)
             dotMatch = np.asarray(dotMatch)
@@ -550,6 +568,9 @@ def noteDetect(staff, img, keyFlats, keySharps):
             print('universalSharp: ', universalSharp)
             keySharps.append(universalSharp)
 
+        print('key sharps: ', keySharps)
+        print('key flats: ', keyFlats)
+
     for note in notes:
         if len(keyFlats) != 0:
             for flat in keyFlats:
@@ -576,16 +597,17 @@ def noteDetect(staff, img, keyFlats, keySharps):
 
     for note in notes:
         if note.y_val is not None:
-            crop = accidentalsImgCopy[round(note.y_val - 1.5 * height):round(note.y_val + 1.5 * height),
-                   round(note.x_val - 2 * staff.dis):round(note.x_val)]
-            # cv.imshow('accidentalsCrop', crop)
+            crop = accidentalsImgCopy[round(note.y_val - 1.5 * height):round(note.y_val + 2 * height),
+                                      round(note.x_val - 2 * staff.dis):round(note.x_val)]
+            # cv.imshow('accidental crop', crop)
             # cv.waitKey(0)
             AF = cv.matchTemplate(crop, r_flat, cv.TM_CCOEFF_NORMED)
             AS = cv.matchTemplate(crop, r_sharp, cv.TM_CCOEFF_NORMED)
             AN = cv.matchTemplate(crop, r_natural, cv.TM_CCOEFF_NORMED)
-            aFlatMatch = np.where(AF >= 0.65)
-            aSharpMatch = np.where(AS >= 0.65)
-            aNaturalMatch = np.where(AN >= 0.75)
+            accidentalThresh = 0.65
+            aFlatMatch = np.where(AF >= accidentalThresh)
+            aSharpMatch = np.where(AS >= accidentalThresh)
+            aNaturalMatch = np.where(AN >= accidentalThresh)
             aFlatMatch = np.asarray(aFlatMatch)
             aSharpMatch = np.asarray(aSharpMatch)
             aNaturalMatch = np.asarray(aNaturalMatch)
@@ -605,9 +627,19 @@ def noteDetect(staff, img, keyFlats, keySharps):
                 if note.accidental == 'flat':
                     note.pitch = note.pitch + 1
                     note.accidental = 'natural'
+            y_range = range(note.y_val, note.y_val + height)
+            x_range = range(note.x_val, note.x_val + width)
+            for i in y_range:
+                for j in x_range:
+                    accidentalsImgCopy[i][j] = 255
+
 
     staff.notes = []
     staff.notes = notes
+
+    for note in notes:
+        if note.y_val is not None:
+            print("Duration: ", note.duration)
 
     return staff, img, height, width, keyFlats, keySharps
 
