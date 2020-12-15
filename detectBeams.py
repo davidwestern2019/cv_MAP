@@ -15,10 +15,6 @@ def detectBeams(staff, img_slice_of_staff, black_head_template_height, black_hea
     w = black_head_template_width
     dis = staff.dis         #
     middle_line = staff.l3  # row coordinate of middle staff line
-    print("Middle Line Location is:", middle_line)
-    cv.line(img_slice_of_staff, (0, int(middle_line)), (img_slice_of_staff.shape[0], int(middle_line)), (0,0,0), thickness=1)
-    cv.imshow("Sliced image with middle line drawn", img_slice_of_staff)
-    cv.waitKey(0)
 
     for i in range(0, len(staff.notes)-1):
         note1 = staff.notes[i]
