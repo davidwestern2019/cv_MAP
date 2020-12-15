@@ -4,11 +4,64 @@ import utilities_cv
 import operator
 
 
+def findMeasure(img, r_measure_line, staff, notes, width):
+    measureCopy = img.copy()
+    # crop = measureCopy[:, note_loc + width:measureCopy.shape[1]]
+    ML = cv.matchTemplate(measureCopy, r_measure_line, cv.TM_CCOEFF_NORMED)
+    lineMatch = np.where(ML >= 0.7)
+    lineMatch = np.asarray(lineMatch)
+    # cv.imshow("measure line", r_measure_line)
+    # cv.waitKey(0)
+    print(lineMatch)
+    # cv.imshow("ML", ML)
+    # cv.waitKey(0)
+    lineMatch = remove_dupes(lineMatch, r_measure_line.shape[1] * 3, r_measure_line.shape[0])
+    # print("no dupes, lineMatch: ", lineMatch)
+    numLines = len(lineMatch[1])
+    measureCopy = cv.cvtColor(measureCopy, cv.COLOR_GRAY2BGR)
+    numLines = len(lineMatch[1])
+    for i in range(numLines):
+        cv.rectangle(measureCopy, (lineMatch[1, i], lineMatch[0, i]),
+                     (lineMatch[1, i] + r_measure_line.shape[1], lineMatch[0, i] + r_measure_line.shape[0]),
+                     (0, 0, 256), -1)  # red
+    for note in notes:
+        i = 0
+        while i < len(lineMatch[1]):
+            if note.x_val - r_measure_line.shape[1] < lineMatch[1, i] < note.x_val + width:
+                lineMatch = np.delete(lineMatch, i, 1)
+                print("false measure line around note removed")
+                i = i - 1
+            i = i + 1
+    numLines = len(lineMatch[1])
+    for i in range(numLines):
+        cv.rectangle(img, (lineMatch[1, i] - r_measure_line.shape[1], lineMatch[0, i]),
+                     (lineMatch[1, i] + r_measure_line.shape[1], lineMatch[0, i] + r_measure_line.shape[0]),
+                     (255, 255, 255), -1)  # red
+    cv.imshow("boxed lines", measureCopy)
+    # cv.waitKey(0)
+    # print("measure_lines: ", lineMatch[1])
+    staff.measure_lines = lineMatch[1]
+    staff.measure_lines.sort()
+    # y_range = range(0, img.shape[0])
+    # x_range = range(note.x_val, note.x_val + width)
+    # for i in y_range:
+    #     for j in x_range:
+    #         accidentalsImgCopy[i][j] = 255
+
+    # for i in range(numLines):
+    #     cv.rectangle(img, (0, staff.measure_lines[i] - 3 * r_measure_line.shape[1]),
+    #                  (img.shape[1], staff.measure_lines + 2 * r_measure_line.shape[1]),
+    #                  (0, 0, 256))  # white
+    cv.imshow("measure lines removed", img)
+    cv.waitKey(0)
+    return img
+
+
 def getPitchValue(staff, value):
     d = (staff.l5 - staff.l1) / 16
     # d = staff.dis / 4
-    print("d: ", d)
-    print("staff.dis: ", staff.dis)
+    # print("d: ", d)
+    # print("staff.dis: ", staff.dis)
     # pitch = None
     if staff.l1 - 9 * d <= value <= staff.l1 - 7 * d:
         pitch = 84
@@ -107,14 +160,14 @@ def staffCrop(staff, image):
     staff.l5 = lineLoc(4, staff)
     staff.line_dis = (staff.l5 - staff.l1) / 4
 
-    if staff.staff_start - 6 * staff.dis < 0:
+    if staff.staff_start - 6 * staff.line_dis < 0:
         print("cut beginning")
-        img = image[0:staff.staff_end + 6 * staff.dis, :]
+        img = image[0:round(staff.staff_end + 6 * staff.line_dis), :]
 
-    elif staff.staff_end + 6 * staff.dis > image.shape[0]:
+    elif staff.staff_end + 6 * staff.line_dis > image.shape[0]:
         print("cut end")
-        img = image[staff.staff_start - 6 * staff.dis:image.shape[0], :]
-        start = staff.staff_start - 6 * staff.dis
+        img = image[staff.staff_start - 6 * staff.line_dis:image.shape[0], :]
+        start = staff.staff_start - 6 * staff.line_dis
         staff.l1 = staff.l1 - start
         staff.l2 = staff.l2 - start
         staff.l3 = staff.l3 - start
@@ -123,8 +176,8 @@ def staffCrop(staff, image):
 
     else:
         print("not cut")
-        img = image[staff.staff_start - 6 * staff.dis:staff.staff_end + 6 * staff.dis, :]
-        start = staff.staff_start - 6 * staff.dis
+        img = image[round(staff.staff_start - 6 * staff.line_dis):round(staff.staff_end + 6 * staff.line_dis), :]
+        start = staff.staff_start - 6 * staff.line_dis
         staff.l1 = staff.l1 - start
         staff.l2 = staff.l2 - start
         staff.l3 = staff.l3 - start
@@ -169,8 +222,9 @@ def noteDetect(staff, img, keyFlats, keySharps):
     accentTemplate = cv.imread('accent.png', cv.IMREAD_GRAYSCALE)
 
     tClefTemplate = cv.imread('treble_clef.png', cv.IMREAD_GRAYSCALE)
-
-    scale = (staff.dis + 3) / filledTemplate.shape[0]
+    measureLineTemplate = cv.imread('measure_line.png', cv.IMREAD_GRAYSCALE)
+    # (staff.line_dis + 3) / filledTemplate.shape[0]
+    scale = (staff.line_dis / filledTemplate.shape[0]) * 1.3
 
     width = int(filledTemplate.shape[1] * scale)
     height = int(filledTemplate.shape[0] * scale)
@@ -186,6 +240,8 @@ def noteDetect(staff, img, keyFlats, keySharps):
     r_half = cv.resize(halfTemplate, dim, interpolation=cv.INTER_AREA)
     r_whole = cv.resize(wholeTemplate, wdim, interpolation=cv.INTER_AREA)
     r_wholeL = cv.resize(wholeTemplateL, wdim, interpolation=cv.INTER_AREA)
+    # cv.imshow("filled", r_filled)
+    # cv.waitKey(0)
 
     r_flag8u = resizeTemplate(scale, flag8u)
     r_flag8d = resizeTemplate(scale, flag8d)
@@ -195,24 +251,37 @@ def noteDetect(staff, img, keyFlats, keySharps):
     r_quarterRest = resizeTemplate(scale, quarterRestTemplate)
     r_eighthRest = resizeTemplate(scale, eighthRestTemplate)
     r_sixteenthRest = resizeTemplate(scale, sixteenthRestTemplate)
-    r_halfRest = resizeTemplate(scale, halfRestTemplate)
+    r_halfRest = resizeTemplate(scale * 1.1, halfRestTemplate)
 
     r_sharp = resizeTemplate(scale * 1.25, sharpTemplate)
-    r_flat = resizeTemplate(scale, flatTemplate)
-    r_natural = resizeTemplate(scale * 1.5, naturalTemplate)
+    r_flat = resizeTemplate(scale * 0.9, flatTemplate)
+    # 1.5
+    r_natural = resizeTemplate(scale * 1, naturalTemplate)
 
     r_dot = resizeTemplate(scale * 2, dotTemplate)
     r_accent = resizeTemplate(scale, accentTemplate)
+    # 2.85
+    r_tclef = resizeTemplate(scale * 2.3, tClefTemplate)
+    r_measureLine = resizeTemplate(scale * 1.7, measureLineTemplate)
 
-    r_tclef = resizeTemplate(scale * 2.85, tClefTemplate)
+    # cv.imshow('r_measureLine', r_measureLine)
+    # cv.waitKey(0)
 
     # MORPH FOR QUARTER REST
     k = np.ones((1, 2), np.uint8)
     r_quarterRest = cv.morphologyEx(r_quarterRest, cv.MORPH_CLOSE, k)
     # cv.imshow("morphed quarter rest", r_quarterRest)
     # cv.waitKey(0)
-    #
+
+    # width_line = int(r_measureLine.shape[1] * 2)
+    # height_line = int(r_measureLine.shape[0])
+    # dim = (width_line, height_line)
+    # r_measureLine = cv.resize(r_measureLine, dim, interpolation=cv.INTER_AREA)
+    # cv.imshow('morphed measure line', r_measureLine)
+    # cv.waitKey(0)
     # cv.imshow("resized half rest", r_halfRest)
+    # cv.waitKey(0)
+    # cv.imshow("half note", r_half)
     # cv.waitKey(0)
 
     F = cv.matchTemplate(img, r_filled, cv.TM_CCOEFF_NORMED)
@@ -232,7 +301,8 @@ def noteDetect(staff, img, keyFlats, keySharps):
     SR = cv.matchTemplate(img, r_sixteenthRest, cv.TM_CCOEFF_NORMED)
 
     HR = cv.matchTemplate(img, r_halfRest, cv.TM_CCOEFF_NORMED)
-
+    # cv.imshow("tclef", r_tclef)
+    # cv.waitKey(0)
     TC = cv.matchTemplate(img, r_tclef, cv.TM_CCOEFF_NORMED)
 
     # thresh =
@@ -246,8 +316,11 @@ def noteDetect(staff, img, keyFlats, keySharps):
     qrMatch = np.where(QR >= 0.55)
     erMatch = np.where(ER >= 0.65)
     srMatch = np.where(SR >= 0.65)
-    hrMatch = np.where(HR >= 0.8)
-    #(0.5)
+    cv.imshow('half rest', r_halfRest)
+    cv.waitKey(0)
+    # 0.8
+    hrMatch = np.where(HR >= 0.4)
+    # (0.5)
     tcMatch = np.where(TC >= 0.4)
 
     fMatch = np.asarray(fMatch)
@@ -305,7 +378,8 @@ def noteDetect(staff, img, keyFlats, keySharps):
                      (0, 152, 255))  # orange
 
     for i in range(len(erMatch[1])):
-        cv.rectangle(box_img, (erMatch[1, i], erMatch[0, i]), (erMatch[1, i] + temp_x, erMatch[0, i] + temp_y),
+        cv.rectangle(box_img, (erMatch[1, i], erMatch[0, i]),
+                     (erMatch[1, i] + r_eighthRest.shape[1], erMatch[0, i] + r_eighthRest.shape[0]),
                      (255, 0, 255))  # pink
 
     for i in range(len(srMatch[1])):
@@ -381,7 +455,31 @@ def noteDetect(staff, img, keyFlats, keySharps):
     for i in range(len(hrMatch[1])):
         # MAKE THE Y VALUE NONE AFTER YOU FIGURE OUT IF IT'S A HALF OR WHOLE REST
         new_note = utilities_cv.NoteClass(half_dur, hrMatch[1, i], hrMatch[0, i])
-        notes.append(new_note)
+        print("whole or half note found")
+        removed = False
+        for note in notes:
+            if note.x_val - staff.line_dis < new_note.x_val < note.x_val + width:
+                print("false whole rest above/below note")
+                removed = True
+        print("rest.y_val: ", new_note.y_val)
+        print("hrMatch[0, i]: ", hrMatch[0, i])
+        print("l4: ", staff.l4)
+        print("whole min - max: ", staff.l4 - staff.dis / 6, " - ", staff.l4 + staff.dis / 6)
+        print("l3: ", staff.l3)
+        print("half min - max: ", staff.l3 + staff.dis / 3, " - ", staff.l3 + staff.dis * 2 / 3)
+        if staff.l2 - staff.dis / 6 <= new_note.y_val <= staff.l2 + staff.dis / 6:
+            if not removed:
+                new_note.y_val = None
+                new_note.orig_dur = whole_dur
+                print("whole rest identified")
+                notes.append(new_note)
+        elif staff.l3 - staff.dis * 2 / 3 <= new_note.y_val <= staff.l3 - staff.dis / 3:
+            if not removed:
+                new_note.y_val = None
+                print("half rest identified")
+                notes.append(new_note)
+        else:
+            print("false whole/half rest found and deleted")
 
     # qrMatch = np.transpose(qrMatch)
     # # while loops used here as to prevent indexing errors when iterating through matrix which is being reduced
@@ -398,7 +496,7 @@ def noteDetect(staff, img, keyFlats, keySharps):
 
     notes.sort(key=operator.attrgetter('x_val'))
 
-    d = staff.dis / 4
+    d = staff.line_dis / 4
 
     h = height / 2
     hh = 0
@@ -468,9 +566,9 @@ def noteDetect(staff, img, keyFlats, keySharps):
     for note in notes:
         if note.y_val is not None:
             if note.orig_dur == quarter_dur:
-                crop = img_copy[:, note.x_val - 1:note.x_val + width + staff.dis]
-                y_range = range(note.y_val, note.y_val + height)
-                x_range = range(note.x_val - 1, note.x_val + width + staff.dis)
+                crop = img_copy[:, round(note.x_val - 1):round(note.x_val + width + staff.line_dis)]
+                y_range = range(round(note.y_val), round(note.y_val + height))
+                # x_range = range(round(note.x_val - 1), (note.x_val + width + staff.line_dis))
                 for i in y_range:
                     crop[i] = 255
                 # cv.imshow("flag crop", crop)
@@ -520,7 +618,7 @@ def noteDetect(staff, img, keyFlats, keySharps):
     for note in notes:
         if note.y_val is not None:
             crop = img_copy2[round(note.y_val - d):round(note.y_val + 5 * d),
-                             round(note.x_val + width + d):round(note.x_val + width + 4 * d)]
+                   round(note.x_val + width + d):round(note.x_val + width + 4 * d)]
             DOT = cv.matchTemplate(crop, r_dot, cv.TM_CCOEFF_NORMED)
             dotMatch = np.where(DOT >= 0.7)
             dotMatch = np.asarray(dotMatch)
@@ -541,8 +639,10 @@ def noteDetect(staff, img, keyFlats, keySharps):
 
         FL = cv.matchTemplate(crop, r_flat, cv.TM_CCOEFF_NORMED)
         SH = cv.matchTemplate(crop, r_sharp, cv.TM_CCOEFF_NORMED)
-        kFlatMatch = np.where(FL >= 0.65)
-        kSharpMatch = np.where(SH >= 0.65)
+        #0.65
+        key_thresh = 0.55
+        kFlatMatch = np.where(FL >= key_thresh)
+        kSharpMatch = np.where(SH >= key_thresh)
         kFlatMatch = np.asarray(kFlatMatch)
         kSharpMatch = np.asarray(kSharpMatch)
         kFlatMatch = remove_dupes(kFlatMatch, r_flat.shape[1] / 2, r_flat.shape[0] / 2)
@@ -558,6 +658,8 @@ def noteDetect(staff, img, keyFlats, keySharps):
             universalFlat = getPitchValue(staff, flat_loc)
             print('universalFlat: ', universalFlat)
             keyFlats.append(universalFlat)
+            keyFlats.append(universalFlat + 12)
+            keyFlats.append(universalFlat - 12)
         for i in range(len(kSharpMatch[1])):
             cv.rectangle(crop, (kSharpMatch[1, i], kSharpMatch[0, i]),
                          (kSharpMatch[1, i] + r_sharp.shape[1], kSharpMatch[0, i] + r_sharp.shape[0]), (156, 156, 156))
@@ -567,6 +669,8 @@ def noteDetect(staff, img, keyFlats, keySharps):
             universalSharp = getPitchValue(staff, sharp_loc)
             print('universalSharp: ', universalSharp)
             keySharps.append(universalSharp)
+            keySharps.append(universalSharp + 12)
+            keySharps.append(universalSharp - 12)
 
         print('key sharps: ', keySharps)
         print('key flats: ', keyFlats)
@@ -583,56 +687,99 @@ def noteDetect(staff, img, keyFlats, keySharps):
                     note.pitch = note.pitch + 1
                     note.accidental = 'sharp'
 
-    accidentalsImgCopy = img.copy()
-
     # print('natural.shape: ', r_natural.shape)
     # print('flat.shape: ', r_flat.shape)
     # print('sharp.shape: ', r_sharp.shape)
-    # cv.imshow('r_natural', r_natural)
-    # cv.waitKey(0)
+    cv.imshow('r_natural', r_natural)
+    cv.waitKey(0)
     # cv.imshow('r_flat', r_flat)
     # cv.waitKey(0)
-    # cv.imshow('r_sharp', r_sharp)
-    # cv.waitKey(0)
+    cv.imshow('r_sharp', r_sharp)
+    cv.waitKey(0)
+    print("lines: ", staff.measure_lines)
+    img = findMeasure(img, r_measureLine, staff, notes, width)
+    accidentalsImgCopy = img.copy()
 
+    nextLine = staff.measure_lines
     for note in notes:
         if note.y_val is not None:
+            i = 0
+            while i < len(nextLine):
+                if nextLine[i] < note.x_val:
+                    nextLine = np.delete(nextLine, i)
+                    print("nextLine", nextLine)
+                    i = i - 1
+                i = i + 1
+
             crop = accidentalsImgCopy[round(note.y_val - 1.5 * height):round(note.y_val + 2 * height),
-                                      round(note.x_val - 2 * staff.dis):round(note.x_val)]
+                   round(note.x_val - 2 * staff.line_dis):round(note.x_val + staff.line_dis / 6)]
             # cv.imshow('accidental crop', crop)
             # cv.waitKey(0)
             AF = cv.matchTemplate(crop, r_flat, cv.TM_CCOEFF_NORMED)
             AS = cv.matchTemplate(crop, r_sharp, cv.TM_CCOEFF_NORMED)
             AN = cv.matchTemplate(crop, r_natural, cv.TM_CCOEFF_NORMED)
-            accidentalThresh = 0.65
+            # 0.65
+            # 0.6
+            accidentalThresh = 0.55
             aFlatMatch = np.where(AF >= accidentalThresh)
             aSharpMatch = np.where(AS >= accidentalThresh)
             aNaturalMatch = np.where(AN >= accidentalThresh)
             aFlatMatch = np.asarray(aFlatMatch)
             aSharpMatch = np.asarray(aSharpMatch)
             aNaturalMatch = np.asarray(aNaturalMatch)
+            found = False
             if aFlatMatch.shape[1] != 0:
                 print('accidental flat')
+                for note2 in notes:
+                    if note.pitch == note2.pitch:
+                        if note.x_val < note2.x_val < nextLine[0]:
+                            note2.pitch = note2.pitch - 1
+                            note2.accidental = 'flat'
+                            print('additional flat found in measure')
                 note.pitch = note.pitch - 1
                 note.accidental = 'flat'
+                found = True
+
             if aSharpMatch.shape[1] != 0:
                 print('accidental sharp')
+                for note2 in notes:
+                    if note.pitch == note2.pitch:
+                        if note.x_val < note2.x_val < nextLine[0]:
+                            note2.pitch = note2.pitch + 1
+                            note2.accidental = 'sharp'
+                            print('additional sharp found in measure')
                 note.pitch = note.pitch + 1
                 note.accidental = 'sharp'
+                found = True
+            #if
             if aNaturalMatch.shape[1] != 0:
-                print('accidental natural')
-                if note.accidental == 'sharp':
-                    note.pitch = note.pitch - 1
-                    note.accidental = 'natural'
-                if note.accidental == 'flat':
-                    note.pitch = note.pitch + 1
-                    note.accidental = 'natural'
-            y_range = range(note.y_val, note.y_val + height)
+                if not found:
+                    print('accidental natural')
+                    if note.accidental == 'sharp':
+                        for note2 in notes:
+                            if note.pitch == note2.pitch:
+                                if note.x_val < note2.x_val < nextLine[0]:
+                                    note2.pitch = note2.pitch - 1
+                                    note2.accidental = 'natural'
+                                    print('additional natural found in measure')
+                        note.pitch = note.pitch - 1
+                        note.accidental = 'natural'
+                    if note.accidental == 'flat':
+                        for note2 in notes:
+                            if note.pitch == note2.pitch:
+                                if note.x_val < note2.x_val < nextLine[0]:
+                                    note2.pitch = note2.pitch + 1
+                                    note2.accidental = 'natural'
+                                    print('additional natural found in measure')
+                        note.pitch = note.pitch + 1
+                        note.accidental = 'natural'
+
+            # y_range = range(note.y_val, note.y_val + height)
+            y_range = range(0, accidentalsImgCopy.shape[0])
             x_range = range(note.x_val, note.x_val + width)
             for i in y_range:
                 for j in x_range:
                     accidentalsImgCopy[i][j] = 255
-
 
     staff.notes = []
     staff.notes = notes

@@ -21,6 +21,7 @@ class StaffClass:
     dis = None              # this is the spacing between the staff lines. helps determine font (Roth 1994)
     line_length = None      # length of staff lines. Also is the width of the entire staff
     notes = None            # this is a list of notes in order from left to right. Notes are instances of NoteClass
+    measure_lines = None
 
     def __init__(self, num):
         self.staff_number = num
