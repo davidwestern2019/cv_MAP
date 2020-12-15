@@ -448,10 +448,13 @@ def noteDetect(staff, img, keyFlats, keySharps):
         notes.append(new_note)
 
     for i in range(len(hrMatch[1])):
-        # MAKE THE Y VALUE NONE AFTER YOU FIGURE OUT IF IT'S A HALF OR WHOLE REST
         new_note = utilities_cv.NoteClass(half_dur, hrMatch[1, i], hrMatch[0, i])
         # print("whole or half note found")
         removed = False
+        print("w/h rest location: ", new_note.x_val)
+        print("rest vertical location: ", new_note.y_val)
+        print("whole rest range: ", staff.l2 - staff.dis / 6, " - ", staff.l2 + staff.dis / 6)
+        print("half rest range: ", staff.l3 - staff.dis * 2 / 3, " - ", staff.l3 - staff.dis / 3)
         for note in notes:
             if note.x_val - staff.line_dis < new_note.x_val < note.x_val + width:
                 print("false whole rest above/below note")
