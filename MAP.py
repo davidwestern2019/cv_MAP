@@ -15,7 +15,7 @@ import detectBeams
 
 def main():
     # Use this to use a piece of sample music
-    file_name = "christmas_collage.png"
+    file_name = "wish_you_a_merry_christmas.png"
     orig_img = cv.imread(file_name, cv.IMREAD_GRAYSCALE)
     _, test_img = cv.threshold(orig_img, 180, 255, cv.THRESH_BINARY)
     # imma try some shit here
@@ -83,9 +83,6 @@ def main():
     print("music_file: ", music_file)
     createMIDI.createMIDI(staves, music_file)
     #
-    # # play the music file
-    music_file += ".mid"
-    playMIDI.play_music(music_file)
 
     # label the images
     print("Annotating original image...")
@@ -96,6 +93,12 @@ def main():
     annotated_img_name = file_name[:-4] + "_annotated.png"
     cv.imwrite(annotated_img_name, label_image)
     print("Annotated image saved")
+
+    # # play the music file
+    print("Playing MIDI File")
+    music_file += ".mid"
+    playMIDI.play_music(music_file)
+    print("Song completed")
     print("So long for now!")
 
 
