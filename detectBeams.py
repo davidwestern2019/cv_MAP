@@ -1,5 +1,6 @@
 import cv2 as cv
 import utilities_cv
+import numpy as np
 
 def detectBeams(staff, img_slice_of_staff, black_head_template_height, black_head_template_width):
     # find beams for an entire piece of music
@@ -16,6 +17,10 @@ def detectBeams(staff, img_slice_of_staff, black_head_template_height, black_hea
     dis = staff.dis         #
     middle_line = staff.l3  # row coordinate of middle staff line
 
+    # find groups of 4 eighth notes beamed together
+    staff = find4EighthNotes(staff, img_slice_of_staff, black_head_template_height, black_head_template_width)
+
+    # find pairs of eighth notes
     for i in range(0, len(staff.notes)-1):
         note1 = staff.notes[i]
         note2 = staff.notes[i+1]
@@ -27,8 +32,8 @@ def detectBeams(staff, img_slice_of_staff, black_head_template_height, black_hea
 
             right_note_X_offset = w     # offset the location of search area to find search area
 
-            print("\tNote 1 y_val is:", note1.y_val)
-            print("\tNote 2 y_val is:", note2.y_val)
+            # print("\tNote 1 y_val is:", note1.y_val)
+            # print("\tNote 2 y_val is:", note2.y_val)
 
             # use coordinates of center for seeing if below or above center line
             note1_center = note1.y_val + h/2
@@ -82,7 +87,7 @@ def detectBeams(staff, img_slice_of_staff, black_head_template_height, black_hea
                 note2.beam_flag = True
                 staff.notes[i] = note1
                 staff.notes[i+1] = note2
-                print("Note ", i, " and ", i+1, " are eighth notes")
+                print("\tNote ", i, " and ", i+1, " are eighth notes")
 
     return staff
     # end of detectBeams
@@ -153,6 +158,103 @@ def isThereBeam(leftTop, leftBot, rightTop, rightBot, image, threshold):
         return True
     else:
         return False
+
+
+def find4EighthNotes(staff, img_slice_of_staff, black_head_template_height, black_head_template_width):
+    # Set paramters
+    h = black_head_template_height
+    w = black_head_template_width
+
+    # look for consecutive group of 4 eighth notes
+    for i in range(0, len(staff.notes) - 3):
+        print("\nLooking at note ", i, " for 4-group eighth note detection...")
+        note1 = staff.notes[i]
+        note2 = staff.notes[i + 1]
+        note3 = staff.notes[i + 2]
+        note4 = staff.notes[i + 3]
+
+        # check if note1 is a quarter note
+        if note1.duration == 1 and note1.pitch is not None:
+            # note1 is a quarter note (not quarter rest)
+            # Check note2
+            if note2.duration == 1 and note2.pitch is not None:
+                # note2 is a quarter note
+                # check note3
+                if note3.duration == 1 and note3.pitch is not None:
+                    # note3 is a quarter note
+                    # check note4
+                    if note4.duration == 1 and note4.pitch is not None:
+                        # note4 is a quarter note
+                        # all are quarter notes.
+                        # extract picture of just group of notes
+                        leftCol = note1.x_val   # leftmost point is xvalue of note1 detection box
+                        rightCol = note4.x_val + w  # rightmost point is xvalue of note4 plus template width
+
+                        img_slice_around_group = img_slice_of_staff[:, leftCol:rightCol]
+
+                        # set threshold for the length of the beam
+                        threshold = 0.60
+                        print("\tPossible set of 4 eighth notes")
+
+                        # check if there is a beam
+                        if is4Beam(img_slice_around_group, threshold):
+                            # assign eighth note values
+                            note1.duration = 1 / 2
+                            note2.duration = 1 / 2
+                            note3.duration = 1 / 2
+                            note4.duration = 1 / 2
+
+                            # assign notes to staff's note list
+                            staff.notes[i] = note1
+                            staff.notes[i + 1] = note2
+                            staff.notes[i + 2] = note3
+                            staff.notes[i + 3] = note4
+                            print("\tFound that notes ", i, ", ",i+1, ", ", i+2, ", and ", i+3, " are eighth notes")
+
+    return staff
+
+
+def is4Beam(img_slice_around_group, thresh):
+    # Determine if there is a beam above or below a group of 4 "quarter" notes
+
+    # run edge detector
+    edges = cv.Canny(img_slice_around_group, 100, 200, True)
+    cv.imshow("Edge Image", edges)
+    cv.waitKey(0)
+
+    # run probabilistic Hough Lines
+    minLineLength = thresh*img_slice_around_group.shape[1]
+    print("\tThreshold is: ", minLineLength)
+    maxLineGap = 3
+    lines = cv.HoughLinesP(edges, 1, np.pi/180, threshold=100, minLineLength=minLineLength, maxLineGap=maxLineGap)
+    print("\tThe width of the image slice is ", img_slice_around_group.shape[1], " and height is ", img_slice_around_group.shape[0])
+    print("\tThe output of lines is:")
+    print(lines)
+
+    img_width = img_slice_around_group.shape[1]
+    tuning_pixels = 4
+
+    if lines is None:
+        return False
+    else:
+        # debug
+        beamImage = np.zeros(edges.shape)
+        for x1, y1, x2, y2 in lines[0]:
+            distance = np.sqrt((x1-x2)**2 + (y1-y2)**2)
+            print("\tDistance between points is ", distance)
+            cv.line(beamImage, (x1, y1), (x2, y2), (255, 255, 255), 2)
+            cv.imshow("Hough Transform Image", beamImage)
+            cv.waitKey(0)
+            rise = y2-y1
+            run = x2-x1
+            angle = np.arctan(rise/run)
+            angle_threshold_for_staff = 5*np.pi/180
+            isActuallyStaff = distance > img_width - tuning_pixels and abs(angle)<angle_threshold_for_staff
+            if not isActuallyStaff:    # prevent from accidentally picking up staff lines
+                return True
+            else:
+                print("Found line that could be staff line or something else")
+
 
 
 class ParallelogramClass:
