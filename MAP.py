@@ -15,7 +15,7 @@ import detectBeams
 
 def main():
     # Use this to use a piece of sample music
-    file_name = "o_canada.png"
+    file_name = "havr_yourself.png"
     orig_img = cv.imread(file_name, cv.IMREAD_GRAYSCALE)
     _, test_img = cv.threshold(orig_img, 180, 255, cv.THRESH_BINARY)
     # imma try some shit here
