@@ -26,7 +26,7 @@ def detectBeams(staff, img_slice_of_staff, black_head_template_height, black_hea
         note2 = staff.notes[i+1]
         # check if both are "quarter" notes.
         if ((note1.duration == 1 or note1.beam_flag) and note1.pitch is not None) and (note2.duration == 1 and note2.pitch is not None):
-            print("Looking at notes ", i, " and ", i+1)
+            # print("Looking at notes ", i, " and ", i+1)
             # print("\t note ", i, " x is ", note1.x_val, " and y is", note1.y_val)
             # print("\t note ", i+1, " x is ", note2.x_val, " and y is", note2.y_val)
 
@@ -39,34 +39,33 @@ def detectBeams(staff, img_slice_of_staff, black_head_template_height, black_hea
             note1_center = note1.y_val + h/2
             note2_center = note2.y_val + h/2
 
-            # find coordinates for left note (note1)
-            if note1_center > middle_line:
-                # Note is below middle line. Stem points up
-                topLeft_x = note1.x_val + right_note_X_offset
-                topLeft_y = note1.y_val - 4*dis + h/2
-                botLeft_x = note1.x_val + right_note_X_offset
-                botLeft_y = note1.y_val - 3*dis + h/2
-                leftTop = (topLeft_x, topLeft_y)
-                leftBot = (botLeft_x, botLeft_y)
-            else:
-                # Note is above middle line. Stems points down
-                topLeft_x = note1.x_val
-                topLeft_y = note1.y_val + 3*dis + h/2
-                botLeft_x = note1.x_val
-                botLeft_y = note1.y_val + 4*dis + h/2
-                leftTop = (topLeft_x, topLeft_y)
-                leftBot = (botLeft_x, botLeft_y)
+            nearMiddleLine_1 = note1_center >= middle_line - dis and note1_center <= middle_line + dis
+            nearMiddleLine_2 = note2_center >= middle_line - dis and note2_center <= middle_line + dis
 
-            # find coordinates for right note (note 2)
-            if note2_center > middle_line:
-                # Note is below middle line. Stem points up
-                topRight_x = note2.x_val + right_note_X_offset
-                topRight_y = note2.y_val - 4*dis + h/2
-                botRight_x = note2.x_val + right_note_X_offset
-                botRight_y = note2.y_val - 3*dis + h/2
-                rightTop = (topRight_x, topRight_y)
-                rightBot = (botRight_x, botRight_y)
-            else:
+            # Set threshold
+            threshold = 0.30
+
+            # Check above and below just note 2
+            if nearMiddleLine_2 and not nearMiddleLine_1:  # 2nd eight note IS near the middle line. check above and below
+                # find coordinates for left note (note1)
+                if note1_center > middle_line:
+                    # Note is below middle line. Stem points up
+                    topLeft_x = note1.x_val + right_note_X_offset
+                    topLeft_y = note1.y_val - 4 * dis + h / 2
+                    botLeft_x = note1.x_val + right_note_X_offset
+                    botLeft_y = note1.y_val - 3 * dis + h / 2
+                    leftTop = (topLeft_x, topLeft_y)
+                    leftBot = (botLeft_x, botLeft_y)
+                else:
+                    # Note is above middle line. Stems points down
+                    topLeft_x = note1.x_val
+                    topLeft_y = note1.y_val + 3 * dis + h / 2
+                    botLeft_x = note1.x_val
+                    botLeft_y = note1.y_val + 4 * dis + h / 2
+                    leftTop = (topLeft_x, topLeft_y)
+                    leftBot = (botLeft_x, botLeft_y)
+
+                # Check if above
                 # Note is above middle line. Stems points down
                 topRight_x = note2.x_val
                 topRight_y = note2.y_val + 3 * dis + h / 2
@@ -74,20 +73,223 @@ def detectBeams(staff, img_slice_of_staff, black_head_template_height, black_hea
                 botRight_y = note2.y_val + 4 * dis + h / 2
                 rightTop = (topRight_x, topRight_y)
                 rightBot = (botRight_x, botRight_y)
+                isAbove = isThereBeam(leftTop, leftBot, rightTop, rightBot, img_slice_of_staff, threshold)
 
-            # Set threshold
-            threshold = 0.45
+                # check if below
+                # consider note below middle line. Stem points up
+                topRight_x = note2.x_val + right_note_X_offset
+                topRight_y = note2.y_val - 4 * dis + h / 2
+                botRight_x = note2.x_val + right_note_X_offset
+                botRight_y = note2.y_val - 3 * dis + h / 2
+                rightTop = (topRight_x, topRight_y)
+                rightBot = (botRight_x, botRight_y)
+                isBelow = isThereBeam(leftTop, leftBot, rightTop, rightBot, img_slice_of_staff, threshold)
 
-            # Check if there is beam between them
-            if isThereBeam(leftTop, leftBot, rightTop, rightBot, img_slice_of_staff, threshold):
-                if note1.beam_flag == False:
-                    note1.duration = 1/2
-                    note1.beam_flag = True
-                note2.duration = 1/2
-                note2.beam_flag = True
-                staff.notes[i] = note1
-                staff.notes[i+1] = note2
-                print("\tNote ", i, " and ", i+1, " are eighth notes")
+                if isBelow or isAbove:
+                    if note1.beam_flag == False:
+                        note1.duration = 1/2
+                        note1.beam_flag = True
+                    note2.duration = 1/2
+                    note2.beam_flag = True
+                    staff.notes[i] = note1
+                    staff.notes[i+1] = note2
+                    # print("\tNote ", i, " and ", i+1, " are eighth notes")
+
+            # check above and below just note 1
+            elif not nearMiddleLine_2 and nearMiddleLine_1:
+                # find coordinates for right note (note 2)
+                if note2_center > middle_line:
+                    # Note is below middle line. Stem points up
+                    topRight_x = note2.x_val + right_note_X_offset
+                    topRight_y = note2.y_val - 4 * dis + h / 2
+                    botRight_x = note2.x_val + right_note_X_offset
+                    botRight_y = note2.y_val - 3 * dis + h / 2
+                    rightTop = (topRight_x, topRight_y)
+                    rightBot = (botRight_x, botRight_y)
+                else:
+                    # Note is above middle line. Stems points down
+                    topRight_x = note2.x_val
+                    topRight_y = note2.y_val + 3 * dis + h / 2
+                    botRight_x = note2.x_val
+                    botRight_y = note2.y_val + 4 * dis + h / 2
+                    rightTop = (topRight_x, topRight_y)
+                    rightBot = (botRight_x, botRight_y)
+
+                # Check if above
+                # Note is above middle line. Stems points down
+                topLeft_x = note1.x_val + right_note_X_offset
+                topLeft_y = note1.y_val - 4 * dis + h / 2
+                botLeft_x = note1.x_val + right_note_X_offset
+                botLeft_y = note1.y_val - 3 * dis + h / 2
+                leftTop = (topLeft_x, topLeft_y)
+                leftBot = (botLeft_x, botLeft_y)
+                isAbove = isThereBeam(leftTop, leftBot, rightTop, rightBot, img_slice_of_staff, threshold)
+
+                # check if below
+                # consider note below middle line. Stem points up
+                topRight_x = note2.x_val + right_note_X_offset
+                topRight_y = note2.y_val - 4 * dis + h / 2
+                botRight_x = note2.x_val + right_note_X_offset
+                botRight_y = note2.y_val - 3 * dis + h / 2
+                rightTop = (topRight_x, topRight_y)
+                rightBot = (botRight_x, botRight_y)
+                isBelow = isThereBeam(leftTop, leftBot, rightTop, rightBot, img_slice_of_staff, threshold)
+
+                if isBelow or isAbove:
+                    if note1.beam_flag == False:
+                        note1.duration = 1/2
+                        note1.beam_flag = True
+                    note2.duration = 1/2
+                    note2.beam_flag = True
+                    staff.notes[i] = note1
+                    staff.notes[i+1] = note2
+                    # print("\tNote ", i, " and ", i+1, " are eighth notes")
+
+            # Check both above and below the notes
+            elif nearMiddleLine_2 and nearMiddleLine_1:
+                pass
+                # Check above ---------------------------------------------------------------------------
+                # Note 1
+                # Note is above middle line. Stems points down
+                topLeft_x = note1.x_val
+                topLeft_y = note1.y_val + 3 * dis + h / 2
+                botLeft_x = note1.x_val
+                botLeft_y = note1.y_val + 4 * dis + h / 2
+                leftTop = (topLeft_x, topLeft_y)
+                leftBot = (botLeft_x, botLeft_y)
+                # Note 2
+                # Note is above middle line. Stems points down
+                topRight_x = note2.x_val
+                topRight_y = note2.y_val + 3 * dis + h / 2
+                botRight_x = note2.x_val
+                botRight_y = note2.y_val + 4 * dis + h / 2
+                rightTop = (topRight_x, topRight_y)
+                rightBot = (botRight_x, botRight_y)
+                isAbove = isThereBeam(leftTop, leftBot, rightTop, rightBot, img_slice_of_staff, threshold)
+
+
+                # check below -----------------------------------------------------------------------------
+                # Note 1
+                # Note is below middle line. Stem points up
+                topLeft_x = note1.x_val + right_note_X_offset
+                topLeft_y = note1.y_val - 4 * dis + h / 2
+                botLeft_x = note1.x_val + right_note_X_offset
+                botLeft_y = note1.y_val - 3 * dis + h / 2
+                leftTop = (topLeft_x, topLeft_y)
+                leftBot = (botLeft_x, botLeft_y)
+                # Note 2
+                # Note is below middle line. Stem points up
+                topRight_x = note2.x_val + right_note_X_offset
+                topRight_y = note2.y_val - 4 * dis + h / 2
+                botRight_x = note2.x_val + right_note_X_offset
+                botRight_y = note2.y_val - 3 * dis + h / 2
+                rightTop = (topRight_x, topRight_y)
+                rightBot = (botRight_x, botRight_y)
+                isBelow = isThereBeam(leftTop, leftBot, rightTop, rightBot, img_slice_of_staff, threshold)
+
+
+                # check up/forward slash / -----------------------------------------------------------------
+                # Note 1
+                # Note is below middle line. Stem points up
+                topLeft_x = note1.x_val + right_note_X_offset
+                topLeft_y = note1.y_val - 4 * dis + h / 2
+                botLeft_x = note1.x_val + right_note_X_offset
+                botLeft_y = note1.y_val - 3 * dis + h / 2
+                leftTop = (topLeft_x, topLeft_y)
+                leftBot = (botLeft_x, botLeft_y)
+                # Note 2
+                # Note is above middle line. Stems points down
+                topRight_x = note2.x_val
+                topRight_y = note2.y_val + 3 * dis + h / 2
+                botRight_x = note2.x_val
+                botRight_y = note2.y_val + 4 * dis + h / 2
+                rightTop = (topRight_x, topRight_y)
+                rightBot = (botRight_x, botRight_y)
+                isUpSlash = isThereBeam(leftTop, leftBot, rightTop, rightBot, img_slice_of_staff, threshold)
+
+
+                # check backslash \ ------------------------------------------------------------------------
+                # Note 1
+                # Note is above middle line. Stems points down
+                topLeft_x = note1.x_val
+                topLeft_y = note1.y_val + 3 * dis + h / 2
+                botLeft_x = note1.x_val
+                botLeft_y = note1.y_val + 4 * dis + h / 2
+                leftTop = (topLeft_x, topLeft_y)
+                leftBot = (botLeft_x, botLeft_y)
+                # Note 2
+                # Note is below middle line. Stem points up
+                topRight_x = note2.x_val + right_note_X_offset
+                topRight_y = note2.y_val - 4 * dis + h / 2
+                botRight_x = note2.x_val + right_note_X_offset
+                botRight_y = note2.y_val - 3 * dis + h / 2
+                rightTop = (topRight_x, topRight_y)
+                rightBot = (botRight_x, botRight_y)
+                isBackSlash = isThereBeam(leftTop, leftBot, rightTop, rightBot, img_slice_of_staff, threshold)
+
+                # Check that any of the 4 cases has a beam
+                if isBelow or isAbove or isUpSlash or isBackSlash:
+                    if note1.beam_flag == False:
+                        note1.duration = 1/2
+                        note1.beam_flag = True
+                    note2.duration = 1/2
+                    note2.beam_flag = True
+                    staff.notes[i] = note1
+                    staff.notes[i+1] = note2
+                    # print("\tNote ", i, " and ", i+1, " are eighth notes")
+
+
+            # Check for both notes being away from center line
+            else:   # 2nd eighth note isn't near the middle line
+                # find coordinates for left note (note1)
+                if note1_center > middle_line:
+                    # Note is below middle line. Stem points up
+                    topLeft_x = note1.x_val + right_note_X_offset
+                    topLeft_y = note1.y_val - 4 * dis + h / 2
+                    botLeft_x = note1.x_val + right_note_X_offset
+                    botLeft_y = note1.y_val - 3 * dis + h / 2
+                    leftTop = (topLeft_x, topLeft_y)
+                    leftBot = (botLeft_x, botLeft_y)
+                else:
+                    # Note is above middle line. Stems points down
+                    topLeft_x = note1.x_val
+                    topLeft_y = note1.y_val + 3 * dis + h / 2
+                    botLeft_x = note1.x_val
+                    botLeft_y = note1.y_val + 4 * dis + h / 2
+                    leftTop = (topLeft_x, topLeft_y)
+                    leftBot = (botLeft_x, botLeft_y)
+
+                # find coordinates for right note (note 2)
+                if note2_center > middle_line:
+                    # Note is below middle line. Stem points up
+                    topRight_x = note2.x_val + right_note_X_offset
+                    topRight_y = note2.y_val - 4*dis + h/2
+                    botRight_x = note2.x_val + right_note_X_offset
+                    botRight_y = note2.y_val - 3*dis + h/2
+                    rightTop = (topRight_x, topRight_y)
+                    rightBot = (botRight_x, botRight_y)
+                else:
+                    # Note is above middle line. Stems points down
+                    topRight_x = note2.x_val
+                    topRight_y = note2.y_val + 3 * dis + h / 2
+                    botRight_x = note2.x_val
+                    botRight_y = note2.y_val + 4 * dis + h / 2
+                    rightTop = (topRight_x, topRight_y)
+                    rightBot = (botRight_x, botRight_y)
+
+                # Set threshold
+                threshold = 0.30
+
+                # Check if there is beam between them
+                if isThereBeam(leftTop, leftBot, rightTop, rightBot, img_slice_of_staff, threshold):
+                    if note1.beam_flag == False:
+                        note1.duration = 1/2
+                        note1.beam_flag = True
+                    note2.duration = 1/2
+                    note2.beam_flag = True
+                    staff.notes[i] = note1
+                    staff.notes[i+1] = note2
+                    # print("\tNote ", i, " and ", i+1, " are eighth notes")
 
     return staff
     # end of detectBeams
@@ -141,8 +343,8 @@ def isThereBeam(leftTop, leftBot, rightTop, rightBot, image, threshold):
                     black_count += 1
 
     ratioBlack_total = black_count / search_area.getArea()
-    print("\t",ratioBlack_total, " fraction of search parallelogram are black pixels")
-    print("\tFound ", black_count, " black pixels in total out of ", search_area.getArea(), " pixels.")
+    # print("\t",ratioBlack_total, " fraction of search parallelogram are black pixels")
+    # print("\tFound ", black_count, " black pixels in total out of ", search_area.getArea(), " pixels.")
     pt1 = (int(leftTop[0]), int(leftTop[1]))
     pt2 = (int(rightTop[0]), int(rightTop[1]))
     pt3 = (int(leftBot[0]), int(leftBot[1]))
@@ -167,7 +369,7 @@ def find4EighthNotes(staff, img_slice_of_staff, black_head_template_height, blac
 
     # look for consecutive group of 4 eighth notes
     for i in range(0, len(staff.notes) - 3):
-        print("\nLooking at note ", i, " for 4-group eighth note detection...")
+        # print("\nLooking at note ", i, " for 4-group eighth note detection...")
         note1 = staff.notes[i]
         note2 = staff.notes[i + 1]
         note3 = staff.notes[i + 2]
@@ -194,7 +396,7 @@ def find4EighthNotes(staff, img_slice_of_staff, black_head_template_height, blac
 
                         # set threshold for the length of the beam
                         threshold = 0.60
-                        print("\tPossible set of 4 eighth notes")
+                        # print("\tPossible set of 4 eighth notes")
 
                         # check if there is a beam
                         if is4Beam(img_slice_around_group, threshold):
@@ -209,7 +411,7 @@ def find4EighthNotes(staff, img_slice_of_staff, black_head_template_height, blac
                             staff.notes[i + 1] = note2
                             staff.notes[i + 2] = note3
                             staff.notes[i + 3] = note4
-                            print("\tFound that notes ", i, ", ",i+1, ", ", i+2, ", and ", i+3, " are eighth notes")
+                            # print("\tFound that notes ", i, ", ",i+1, ", ", i+2, ", and ", i+3, " are eighth notes")
 
     return staff
 
@@ -219,18 +421,18 @@ def is4Beam(img_slice_around_group, thresh):
 
     # run edge detector
     edges = cv.Canny(img_slice_around_group, 100, 200, True)
-    cv.namedWindow("Edge Image", cv.WINDOW_NORMAL)
-    cv.imshow("Edge Image", edges)
-    cv.waitKey(0)
+    # cv.namedWindow("Edge Image", cv.WINDOW_NORMAL)
+    # cv.imshow("Edge Image", edges)
+    # cv.waitKey(0)
 
     # run probabilistic Hough Lines
     minLineLength = thresh*img_slice_around_group.shape[1]
-    print("\tThreshold is: ", minLineLength)
+    # print("\tThreshold is: ", minLineLength)
     maxLineGap = 10
     lines = cv.HoughLinesP(edges, 1, np.pi/180, threshold=50, minLineLength=minLineLength, maxLineGap=maxLineGap)
-    print("\tThe width of the image slice is ", img_slice_around_group.shape[1], " and height is ", img_slice_around_group.shape[0])
-    print("\tThe output of lines is:")
-    print(lines)
+    # print("\tThe width of the image slice is ", img_slice_around_group.shape[1], " and height is ", img_slice_around_group.shape[0])
+    # print("\tThe output of lines is:")
+    # print(lines)
 
     img_width = img_slice_around_group.shape[1]
     tuning_pixels = 4
@@ -242,9 +444,9 @@ def is4Beam(img_slice_around_group, thresh):
         beamImage = np.zeros(edges.shape)
         for x1, y1, x2, y2 in lines[0]:
             distance = np.sqrt((x1-x2)**2 + (y1-y2)**2)
-            print("\tDistance between points is ", distance)
+            # print("\tDistance between points is ", distance)
             cv.line(beamImage, (x1, y1), (x2, y2), (255, 255, 255), 2)
-            cv.imshow("Hough Transform Image", beamImage)
+            # cv.imshow("Hough Transform Image", beamImage)
             cv.waitKey(0)
             rise = y2-y1
             run = x2-x1
