@@ -77,7 +77,7 @@ def midiNum2Letter(note_num, accidental=None):
     # -- letter     =   letter of the note. Does NOT include the number of the note
 
     # this array of strings has the note letters and whether they're sharp or flat
-    array_letters = ('C', 'C#Db', 'D', 'D#Eb', 'E', 'F', 'F#Gb', 'G','G#Ab', 'A', 'A#Bb', 'B')
+    array_letters = ('C', 'C#Db', 'D', 'D#Eb', 'E', 'F', 'F#Gb', 'G', 'G#Ab', 'A', 'A#Bb', 'B')
 
     index = note_num % 12
     note = array_letters[index] # there are only 12 notes in an octave. midi numbers start at A = 1
