@@ -23,7 +23,7 @@ def labelNotes(image, staves):
         # go to to each note
         dis = staff.dis
         vert_coord = staff.staff_end + dis*3    # where the labels go
-        font_scale = dis/12        # scale the font
+        font_scale = dis/16        # scale the font
         tuning_col = 5              # tuning parameter to make the letters directly under the note head
         # print("Staff ends at: ", vert_coord)
         # print("There are ", len(staff.notes), " notes/rests in this staff.")

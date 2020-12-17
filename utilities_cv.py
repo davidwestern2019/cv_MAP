@@ -83,7 +83,7 @@ def midiNum2Letter(note_num, accidental=None):
     note = array_letters[index] # there are only 12 notes in an octave. midi numbers start at A = 1
     letter = ''
     if accidental == 'sharp':   # note is sharp
-        letter = note[0:1]
+        letter = note[0:2]
     elif accidental == 'flat':
         letter = note[2:]       # note is flat
     else:
