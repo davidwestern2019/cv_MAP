@@ -8,8 +8,8 @@ def detectBeams(staff, img_slice_of_staff, black_head_template_height, black_hea
     # OUTPUTS: staves - edited list of StaffClass objects
 
     print("Running detectBeams....")
-    print("Template height is: ", black_head_template_height, ", and width is: ", black_head_template_width)
-    print("Dis is ", staff.dis)
+    # print("Template height is: ", black_head_template_height, ", and width is: ", black_head_template_width)
+    # print("Dis is ", staff.dis)
 
     # get some parameters
     h = black_head_template_height
@@ -352,10 +352,10 @@ def isThereBeam(leftTop, leftBot, rightTop, rightBot, image, threshold):
 
     win_name = "Cropped Image for Beam Search"
     # cv.namedWindow(win_name, cv.WINDOW_NORMAL)
-    cv.line(image, pt1, pt2, (0, 0, 0))   # draw top line
-    cv.line(image, pt3, pt4, (0, 0, 0))   # draw bottom line
-    cv.imshow(win_name, image)
-    cv.waitKey(0)
+    # cv.line(image, pt1, pt2, (0, 0, 0))   # draw top line
+    # cv.line(image, pt3, pt4, (0, 0, 0))   # draw bottom line
+    # cv.imshow(win_name, image)
+    # cv.waitKey(0)
     if black_count >= threshold*search_area.getArea():
         return True
     else:
@@ -445,9 +445,9 @@ def is4Beam(img_slice_around_group, thresh):
         for x1, y1, x2, y2 in lines[0]:
             distance = np.sqrt((x1-x2)**2 + (y1-y2)**2)
             # print("\tDistance between points is ", distance)
-            cv.line(beamImage, (x1, y1), (x2, y2), (255, 255, 255), 2)
-            # cv.imshow("Hough Transform Image", beamImage)
-            cv.waitKey(0)
+            # cv.line(beamImage, (x1, y1), (x2, y2), (255, 255, 255), 2)
+            # # cv.imshow("Hough Transform Image", beamImage)
+            # cv.waitKey(0)
             rise = y2-y1
             run = x2-x1
             angle = np.arctan(rise/run)
