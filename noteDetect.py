@@ -46,7 +46,7 @@ def findMeasure(img, r_measure_line, staff, notes, width):
         cv.rectangle(img, (lineMatch[1, i] - r_measure_line.shape[1], lineMatch[0, i]),
                      (lineMatch[1, i] + r_measure_line.shape[1], lineMatch[0, i] + r_measure_line.shape[0]),
                      (255, 255, 255), -1)  # white
-    cv.imshow("boxed lines", measureCopy)
+    # cv.imshow("boxed lines", measureCopy)
     # cv.waitKey(0)
     # print("measure_lines: ", lineMatch[1])
     staff.measure_lines = lineMatch[1]
@@ -56,8 +56,8 @@ def findMeasure(img, r_measure_line, staff, notes, width):
     #     cv.rectangle(img, (0, staff.measure_lines[i] - 3 * r_measure_line.shape[1]),
     #                  (img.shape[1], staff.measure_lines + 2 * r_measure_line.shape[1]),
     #                  (0, 0, 256))  # white
-    cv.imshow("measure lines removed", img)
-    cv.waitKey(0)
+    # cv.imshow("measure lines removed", img)
+    # cv.waitKey(0)
     return img
 
 
@@ -155,8 +155,8 @@ def lineLoc(i, staff):
 
 
 def staffCrop(staff, image):
-    cv.imshow("staffless", image)
-    cv.waitKey(0)
+    # cv.imshow("staffless", image)
+    # cv.waitKey(0)
     staff.l1 = lineLoc(0, staff)
     staff.l2 = lineLoc(1, staff)
     staff.l3 = lineLoc(2, staff)
@@ -413,8 +413,8 @@ def noteDetect(staff, img, keyFlats, keySharps):
         cv.rectangle(box_img, (tcMatch[1, i], tcMatch[0, i]),
                      (tcMatch[1, i] + r_tclef.shape[1], tcMatch[0, i] + r_tclef.shape[0]), (128, 128, 128))  # gray
 
-    cv.imshow("img boxed", box_img)
-    cv.waitKey(0)
+    # cv.imshow("img boxed", box_img)
+    # cv.waitKey(0)
 
     notes = []
     quarter_dur = 1
@@ -851,8 +851,8 @@ def noteDetect(staff, img, keyFlats, keySharps):
     # for note in notes:
     #     if note.y_val is not None:
     #         print("Duration: ", note.duration)
-    cv.imshow("accuracy check img", box_img)
-    cv.waitKey(0)
+    # cv.imshow("accuracy check img", box_img)
+    # cv.waitKey(0)
     return staff, img, height, width, keyFlats, keySharps
 
 
