@@ -3,7 +3,6 @@
 # classes that are used across the layers of the project should also be put here to avoid any issues
 
 import cv2 as cv
-import sys
 
 
 class StaffClass:

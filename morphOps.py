@@ -8,7 +8,6 @@ import vertical_runs
 def performStaffOps(img, dis):
     # get image parameters
     img_height = img.shape[0]
-    img_width = img.shape[1]
 
     # invert image
     img_inv = invertBinaryImage(img)
@@ -18,31 +17,23 @@ def performStaffOps(img, dis):
     block_height_dil_1 = dis+3
     kernel = np.ones((block_height_dil_1, block_width_dil_1), np.uint8)
     img_dil = cv.dilate(img_inv, kernel=kernel)
-    #cv.imshow("Dilated Image", img_dil)
 
     # erode with horizontal block
     # find the length of the stafflines with horizontal projections
     _, staffline_lengths = horizontal_projection.horizontal_projection_calc(img_dil, start_row=0, end_row=img_height)
     block_width_erod = int(max(staffline_lengths)*0.5)
-    # print("Staffline lengths: ", staffline_lengths)
-    #print('Image width is: ', img_width)
     block_height_erod = dis
     kernel = np.ones((block_height_erod, block_width_erod), np.uint8)
     img_erode = cv.erode(img_dil, kernel)
-    #cv.imshow("Eroded Image", img_erode)
 
     # dilate with skinny horizontal block
     block_width_dil_1 = block_width_erod - block_width_dil_1
     block_height_dil_1 = 1
     kernel = np.ones((block_height_dil_1, block_width_dil_1), np.uint8)
     img_dil_2 = cv.dilate(img_erode, kernel=kernel)
-    # cv.imshow("2nd Dilation Image", img_dil_2)
-    # cv.waitKey(0)
 
     # invert image to get back to black text
     img = invertBinaryImage(img_dil_2)
-    # cv.imshow("Morphological Operation", img)
-    # cv.waitKey(0)
     return img
 
 def invertBinaryImage(img):

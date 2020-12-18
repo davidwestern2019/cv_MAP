@@ -15,26 +15,18 @@ def findStaves(image):
 
     # perform vertical run to find staffline thickness and spacing b/w the lines
     black_histogram, white_histogram = vertical_runs.vertical_runs_calc(image)
-    staffline_thickness = find_line_thickness(black_histogram)  # max thickness of staff lines
     staffline_spacing = find_line_spacing(white_histogram)  # avg space between staff lines
 
     # find the location of staves and the spacing between staves
     # -- perform morphological ops
     # -- extract staff size and location for each staff. Also get number of staves
     morphed_image = morphOps.performStaffOps(image, staffline_spacing)
-    # cv.imshow("Morphed Image", morphed_image)
-    # cv.waitKey(0)
     staves = find_staff_locations(morphed_image)
-    # print("Found staves. Adding line thickness and spacing...")
 
     # add parameters to each staff object
-    # extra_bins_for_varying_line_thickness = 7       # use for old method of finding staff lines
     bin_size = 1  # look at every row
     for staff in staves:
-        # print("Doing staff ", staff.staff_number)
         staff.dis = staffline_spacing
-        # print("Thickness is: ", staffline_thickness)
-        # print("Start: ", staff.staff_start, ", End: ", staff.staff_end)
         line_start_locations = horizontal_projection.horizontal_projection_calc(image,
                                                                                    staff.staff_start,
                                                                                    staff.staff_end,
@@ -42,16 +34,7 @@ def findStaves(image):
                                                                                    peaks=0)
 
         # clean up the staff line locations. fix lines that should be connected together
-        # print(line_start_locations)
-        # staff.line_locations = improveStaffLocations(line_start_locations, staffline_thickness, line_lengths)
         staff.line_locations = stitchLinesTogether(line_start_locations, staff)
-        # print(staff.line_locations)
-
-    # just to check to make sure that the objects are getting the right methods
-    # for staff in staves:
-    #     print("Staff ", staff.staff_number, " has the following:")
-    #     print("\t Line length: ", staff.line_length)
-    #     print("\t Line Locations", staff.line_locations)
 
     # return list of objects. The objects represent a staff and contain staff info. List is sorted from top staff to
     # bottom

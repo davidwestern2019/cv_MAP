@@ -364,7 +364,6 @@ def isThereBeam(leftTop, leftBot, rightTop, rightBot, image, threshold):
 
 def find4EighthNotes(staff, img_slice_of_staff, black_head_template_height, black_head_template_width):
     # Set paramters
-    h = black_head_template_height
     w = black_head_template_width
 
     # look for consecutive group of 4 eighth notes
@@ -421,18 +420,11 @@ def is4Beam(img_slice_around_group, thresh):
 
     # run edge detector
     edges = cv.Canny(img_slice_around_group, 100, 200, True)
-    # cv.namedWindow("Edge Image", cv.WINDOW_NORMAL)
-    # cv.imshow("Edge Image", edges)
-    # cv.waitKey(0)
 
     # run probabilistic Hough Lines
     minLineLength = thresh*img_slice_around_group.shape[1]
-    # print("\tThreshold is: ", minLineLength)
     maxLineGap = 10
     lines = cv.HoughLinesP(edges, 1, np.pi/180, threshold=50, minLineLength=minLineLength, maxLineGap=maxLineGap)
-    # print("\tThe width of the image slice is ", img_slice_around_group.shape[1], " and height is ", img_slice_around_group.shape[0])
-    # print("\tThe output of lines is:")
-    # print(lines)
 
     img_width = img_slice_around_group.shape[1]
     tuning_pixels = 4

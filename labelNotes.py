@@ -1,7 +1,6 @@
 # This function labels the notes of the original sheet of music
 
 import cv2 as cv
-import numpy as np
 import utilities_cv
 import createMIDI
 
