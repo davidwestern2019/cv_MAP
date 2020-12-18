@@ -26,14 +26,9 @@ def detectBeams(staff, img_slice_of_staff, black_head_template_height, black_hea
         note2 = staff.notes[i+1]
         # check if both are "quarter" notes.
         if ((note1.duration == 1 or note1.beam_flag) and note1.pitch is not None) and (note2.duration == 1 and note2.pitch is not None):
-            # print("Looking at notes ", i, " and ", i+1)
-            # print("\t note ", i, " x is ", note1.x_val, " and y is", note1.y_val)
-            # print("\t note ", i+1, " x is ", note2.x_val, " and y is", note2.y_val)
 
+            # the locations of the notes are in the upper left corner of the notehead. Account for the size of the template used when looking for stem positions.
             right_note_X_offset = w     # offset the location of search area to find search area
-
-            # print("\tNote 1 y_val is:", note1.y_val)
-            # print("\tNote 2 y_val is:", note2.y_val)
 
             # use coordinates of center for seeing if below or above center line
             note1_center = note1.y_val + h/2
