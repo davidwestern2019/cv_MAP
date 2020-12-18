@@ -13,8 +13,7 @@ def labelNotes(image, staves):
 
     # Parameters
     #   adjust the following parameters to get desirable labeling
-    # font = cv.LINE_AA
-    font = cv.FONT_HERSHEY_SIMPLEX
+    font = cv.LINE_AA
     color_text = (0, 0, 0)
 
     # go to each staff
@@ -32,9 +31,9 @@ def labelNotes(image, staves):
             if note.pitch is not None:
                 col = note.x_val
                 letter = utilities_cv.midiNum2Letter(note.pitch, accidental=note.accidental)
-                cv.putText(image, letter, (col-tuning_col, vert_coord), font, font_scale, color_text, thickness=2)
-                # if note.duration == 0.5:
-                #     cv.drawMarker(image, (col-tuning_col+5, vert_coord+15), (0, 0, 0), cv.MARKER_TRIANGLE_UP)
+                cv.putText(image, letter, (col-tuning_col, vert_coord), font, font_scale, color_text, thickness=1)
+                if note.duration == 0.5:
+                    cv.drawMarker(image, (col-tuning_col+5, vert_coord+15), (0, 0, 0), cv.MARKER_TRIANGLE_UP)
                 image = image
     return image
 
