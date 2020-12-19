@@ -32,8 +32,8 @@ def labelNotes(image, staves):
                 col = note.x_val
                 letter = utilities_cv.midiNum2Letter(note.pitch, accidental=note.accidental)
                 cv.putText(image, letter, (col-tuning_col, vert_coord), font, font_scale, color_text, thickness=1)
-                if note.duration == 0.5:
-                    cv.drawMarker(image, (col-tuning_col+5, vert_coord+15), (0, 0, 0), cv.MARKER_TRIANGLE_UP)
+                # if note.duration == 0.5:
+                #     cv.drawMarker(image, (col-tuning_col+5, vert_coord+15), (0, 0, 0), cv.MARKER_TRIANGLE_UP)
                 image = image
     return image
 
